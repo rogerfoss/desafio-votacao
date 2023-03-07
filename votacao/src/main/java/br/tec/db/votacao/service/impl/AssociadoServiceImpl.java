@@ -1,9 +1,10 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.AssociadoDTO;
 import br.tec.db.votacao.enums.AssociadoStatusEnum;
 import br.tec.db.votacao.model.Associado;
 import br.tec.db.votacao.repository.AssociadoRepository;
+import br.tec.db.votacao.service.AssociadoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +15,12 @@ import java.util.stream.Collectors;
 @Service
 public class AssociadoServiceImpl implements AssociadoService {
 
+    private final AssociadoRepository associadoRepository;
+
     @Autowired
-    private AssociadoRepository associadoRepository;
+    public AssociadoServiceImpl(AssociadoRepository associadoRepository) {
+        this.associadoRepository = associadoRepository;
+    }
 
     @Override
     public AssociadoDTO salvarAssociado(AssociadoDTO associadoDTO) throws RuntimeException {

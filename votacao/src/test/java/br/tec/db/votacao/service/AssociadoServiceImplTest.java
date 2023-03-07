@@ -4,6 +4,7 @@ import br.tec.db.votacao.dto.AssociadoDTO;
 import br.tec.db.votacao.enums.AssociadoStatusEnum;
 import br.tec.db.votacao.model.Associado;
 import br.tec.db.votacao.repository.AssociadoRepository;
+import br.tec.db.votacao.service.impl.AssociadoServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

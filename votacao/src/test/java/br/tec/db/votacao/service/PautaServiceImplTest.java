@@ -6,6 +6,7 @@ import br.tec.db.votacao.enums.PautaStatusEnum;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.repository.PautaRepository;
+import br.tec.db.votacao.service.impl.PautaServiceImpl;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

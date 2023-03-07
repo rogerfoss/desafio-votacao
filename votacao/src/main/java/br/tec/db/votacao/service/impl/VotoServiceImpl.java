@@ -1,4 +1,4 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.VotoDTO;
 import br.tec.db.votacao.enums.SessaoDeVotacaoStatusEnum;
@@ -8,6 +8,7 @@ import br.tec.db.votacao.model.Voto;
 import br.tec.db.votacao.repository.AssociadoRepository;
 import br.tec.db.votacao.repository.SessaoDeVotacaoRepository;
 import br.tec.db.votacao.repository.VotoRepository;
+import br.tec.db.votacao.service.VotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,14 +18,18 @@ import java.util.stream.Collectors;
 @Service
 public class VotoServiceImpl implements VotoService {
 
-    @Autowired
-    private VotoRepository votoRepository;
+    private final VotoRepository votoRepository;
+
+    private final SessaoDeVotacaoRepository sessaoDeVotacaoRepository;
+
+    private final AssociadoRepository associadoRepository;
 
     @Autowired
-    private SessaoDeVotacaoRepository sessaoDeVotacaoRepository;
-
-    @Autowired
-    private AssociadoRepository associadoRepository;
+    public VotoServiceImpl(VotoRepository votoRepository, SessaoDeVotacaoRepository sessaoDeVotacaoRepository, AssociadoRepository associadoRepository) {
+        this.votoRepository = votoRepository;
+        this.sessaoDeVotacaoRepository = sessaoDeVotacaoRepository;
+        this.associadoRepository = associadoRepository;
+    }
 
     @Override
     public VotoDTO votar(VotoDTO votoDTO) {

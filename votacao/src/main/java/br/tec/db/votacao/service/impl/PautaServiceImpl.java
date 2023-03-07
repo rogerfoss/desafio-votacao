@@ -1,4 +1,4 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.PautaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
@@ -7,6 +7,7 @@ import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.repository.AssembleiaRepository;
 import br.tec.db.votacao.repository.PautaRepository;
+import br.tec.db.votacao.service.PautaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +18,15 @@ import java.util.stream.Collectors;
 @Service
 public class PautaServiceImpl implements PautaService {
 
-    @Autowired
-    private PautaRepository pautaRepository;
+    private final PautaRepository pautaRepository;
+
+    private final AssembleiaRepository assembleiaRepository;
 
     @Autowired
-    private AssembleiaRepository assembleiaRepository;
+    public PautaServiceImpl(PautaRepository pautaRepository, AssembleiaRepository assembleiaRepository) {
+        this.pautaRepository = pautaRepository;
+        this.assembleiaRepository = assembleiaRepository;
+    }
 
     @Override
     public PautaDTO criarPauta(PautaDTO pautaDTO) throws RuntimeException {

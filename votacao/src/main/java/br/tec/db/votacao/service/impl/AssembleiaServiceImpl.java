@@ -1,9 +1,10 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.AssembleiaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.repository.AssembleiaRepository;
+import br.tec.db.votacao.service.AssembleiaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,12 @@ import java.util.stream.Collectors;
 @Service
 public class AssembleiaServiceImpl implements AssembleiaService {
 
+    private final AssembleiaRepository assembleiaRepository;
+
     @Autowired
-    private AssembleiaRepository assembleiaRepository;
+    public AssembleiaServiceImpl(AssembleiaRepository assembleiaRepository) {
+        this.assembleiaRepository = assembleiaRepository;
+    }
 
     @Override
     public AssembleiaDTO criarAssembleia(AssembleiaDTO assembleiaDTO) throws RuntimeException {

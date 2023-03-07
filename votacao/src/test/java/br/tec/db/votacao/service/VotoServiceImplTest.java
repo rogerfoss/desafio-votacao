@@ -8,6 +8,7 @@ import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.model.SessaoDeVotacao;
 import br.tec.db.votacao.model.Voto;
 import br.tec.db.votacao.repository.VotoRepository;
+import br.tec.db.votacao.service.impl.VotoServiceImpl;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

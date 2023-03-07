@@ -1,4 +1,4 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.SessaoDeVotacaoDTO;
 import br.tec.db.votacao.enums.PautaStatusEnum;
@@ -8,6 +8,7 @@ import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.model.SessaoDeVotacao;
 import br.tec.db.votacao.repository.PautaRepository;
 import br.tec.db.votacao.repository.SessaoDeVotacaoRepository;
+import br.tec.db.votacao.service.SessaoDeVotacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +19,15 @@ import java.util.stream.Collectors;
 @Service
 public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
 
-    @Autowired
-    private SessaoDeVotacaoRepository sessaoDeVotacaoRepository;
+    private final SessaoDeVotacaoRepository sessaoDeVotacaoRepository;
+
+    private final PautaRepository pautaRepository;
 
     @Autowired
-    private PautaRepository pautaRepository;
+    public SessaoDeVotacaoServiceImpl(SessaoDeVotacaoRepository sessaoDeVotacaoRepository, PautaRepository pautaRepository) {
+        this.sessaoDeVotacaoRepository = sessaoDeVotacaoRepository;
+        this.pautaRepository = pautaRepository;
+    }
 
     @Override
     public SessaoDeVotacaoDTO criarSessaoDeVotacao(SessaoDeVotacaoDTO sessaoDeVotacaoDTO) throws RuntimeException {
