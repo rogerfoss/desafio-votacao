@@ -13,8 +13,12 @@ import java.util.List;
 @RequestMapping("/sessao-de-votacao")
 public class SessaoDeVotacaoController {
 
+    private final SessaoDeVotacaoService sessaoDeVotacaoService;
+
     @Autowired
-    private SessaoDeVotacaoService sessaoDeVotacaoService;
+    public SessaoDeVotacaoController(SessaoDeVotacaoService sessaoDeVotacaoService) {
+        this.sessaoDeVotacaoService = sessaoDeVotacaoService;
+    }
 
     @PostMapping
     public ResponseEntity<SessaoDeVotacaoDTO> criarSessaoDeVotacao(@RequestBody SessaoDeVotacaoDTO sessaoDeVotacaoDto) {

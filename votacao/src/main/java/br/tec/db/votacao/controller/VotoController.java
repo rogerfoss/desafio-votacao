@@ -13,8 +13,12 @@ import java.util.List;
 @RequestMapping("/votos")
 public class VotoController {
 
+    private final VotoService votoService;
+
     @Autowired
-    private VotoService votoService;
+    public VotoController(VotoService votoService) {
+        this.votoService = votoService;
+    }
 
     @PostMapping
     public ResponseEntity<VotoDTO> votar(@RequestBody VotoDTO votoDTO) {

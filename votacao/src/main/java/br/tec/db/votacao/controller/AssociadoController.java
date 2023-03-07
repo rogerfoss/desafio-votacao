@@ -13,8 +13,12 @@ import java.util.List;
 @RequestMapping("/associados")
 public class AssociadoController {
 
+    private final AssociadoService associadoService;
+
     @Autowired
-    private AssociadoService associadoService;
+    public AssociadoController(AssociadoService associadoService) {
+        this.associadoService = associadoService;
+    }
 
     @PostMapping
     public ResponseEntity<AssociadoDTO> salvarAssociado(@RequestBody AssociadoDTO associadoDTO) {

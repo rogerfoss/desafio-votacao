@@ -13,8 +13,12 @@ import java.util.List;
 @RequestMapping("/pautas")
 public class PautaController {
 
+    private final PautaService pautaService;
+
     @Autowired
-    private PautaService pautaService;
+    public PautaController(PautaService pautaService) {
+        this.pautaService = pautaService;
+    }
 
     @PostMapping
     public ResponseEntity<PautaDTO> criarPauta(@RequestBody PautaDTO pautaDTO) {

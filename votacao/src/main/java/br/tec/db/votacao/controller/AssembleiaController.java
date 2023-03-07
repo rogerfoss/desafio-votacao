@@ -13,8 +13,12 @@ import java.util.List;
 @RequestMapping("/assembleias")
 public class AssembleiaController {
 
+    private final AssembleiaService assembleiaService;
+
     @Autowired
-    private AssembleiaService assembleiaService;
+    public AssembleiaController(AssembleiaService assembleiaService) {
+        this.assembleiaService = assembleiaService;
+    }
 
     @PostMapping
     public ResponseEntity<AssembleiaDTO> criarAssembleia(@RequestBody AssembleiaDTO assembleiaDTO) {
