@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "pauta")
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode
 public class Pauta {
 
     @Id

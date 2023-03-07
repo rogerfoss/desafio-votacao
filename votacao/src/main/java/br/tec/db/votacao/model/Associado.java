@@ -3,8 +3,8 @@ package br.tec.db.votacao.model;
 import br.tec.db.votacao.enums.AssociadoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
+import org.hibernate.validator.constraints.br.CPF;
 
 @Entity
 @Getter
@@ -12,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "associado")
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode
 public class Associado {
 
     @Id
@@ -23,7 +23,7 @@ public class Associado {
     private String nome;
 
     @NotBlank
-    @Pattern(regexp = "[0-9]{11}", message = "CPF deve conter apenas números")
+    @CPF(message = "CPF inválido")
     private String cpf;
 
     @Enumerated(EnumType.STRING)

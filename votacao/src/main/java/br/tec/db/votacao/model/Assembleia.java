@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "assembleia")
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode
 public class Assembleia {
 
     @Id
