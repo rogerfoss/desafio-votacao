@@ -1,7 +1,9 @@
 package br.tec.db.votacao.service.impl;
 
-import br.tec.db.votacao.dto.AssembleiaDTO;
+import br.tec.db.votacao.dto.assembleiaDTO.BuscarAssembleiaDTO;
+import br.tec.db.votacao.dto.assembleiaDTO.CriarAssembleiaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
+import br.tec.db.votacao.mapper.AssembleiaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.repository.AssembleiaRepository;
 import br.tec.db.votacao.service.AssembleiaService;
@@ -11,8 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class AssembleiaServiceImpl implements AssembleiaService {
@@ -25,28 +25,24 @@ public class AssembleiaServiceImpl implements AssembleiaService {
     }
 
     @Override
-    public AssembleiaDTO criarAssembleia(AssembleiaDTO assembleiaDTO) throws RuntimeException {
-        Assembleia assembleia = new Assembleia();
-        assembleia.setStatus(AssembleiaStatusEnum.INICIADA);
+    public Assembleia criarAssembleia(CriarAssembleiaDTO criarAssembleiaDTO) throws RuntimeException {
+
         try {
-            return new AssembleiaDTO(assembleiaRepository.save(assembleia));
+            return assembleiaRepository.save(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
         } catch (RuntimeException e) {
             throw new RuntimeException("Erro ao criar assembleia");
         }
+
+    }
+
+    public List<BuscarAssembleiaDTO> buscarTodasAssembleias() throws DataAccessException {
+        return assembleiaRepository.findAll().stream().map(BuscarAssembleiaDTO::new).toList();
     }
 
     @Override
-    public List<AssembleiaDTO> buscarTodasAssembleias() throws DataAccessException {
-        return assembleiaRepository.findAll().stream().map(AssembleiaDTO::new).collect(Collectors.toList());
-    }
-
-    @Override
-    public AssembleiaDTO buscarAssembleiaPorId(Long AssembleiaId) throws RuntimeException {
-        try {
-            return new AssembleiaDTO(Objects.requireNonNull(assembleiaRepository.findById(AssembleiaId).orElse(null)));
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Assembleia não encontrada");
-        }
+    public BuscarAssembleiaDTO buscarAssembleiaPorId(Long AssembleiaId) throws RuntimeException {
+        Assembleia assembleia = this.assembleiaRepository.findById(AssembleiaId).orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+        return new BuscarAssembleiaDTO(assembleia);
     }
 
     @Override

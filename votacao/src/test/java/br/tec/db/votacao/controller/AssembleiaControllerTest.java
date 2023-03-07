@@ -1,6 +1,9 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.AssembleiaDTO;
+import br.tec.db.votacao.dto.assembleiaDTO.BuscarAssembleiaDTO;
+import br.tec.db.votacao.dto.assembleiaDTO.CriarAssembleiaDTO;
+import br.tec.db.votacao.enums.AssembleiaStatusEnum;
+import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.service.AssembleiaService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +35,8 @@ public class AssembleiaControllerTest {
 
     @Test
     public void deveCriarAssembleia() throws Exception {
-        AssembleiaDTO assembleiaDTO = new AssembleiaDTO(LocalDateTime.now());
-        when(assembleiaService.criarAssembleia(any(AssembleiaDTO.class))).thenReturn(assembleiaDTO);
+
+        when(assembleiaService.criarAssembleia(any(CriarAssembleiaDTO.class))).thenReturn(new Assembleia());
 
         mockMvc.perform(post("/assembleias")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -44,7 +47,7 @@ public class AssembleiaControllerTest {
 
     @Test
     public void deveRetornarBadRequestAoCriarAssembleiaComDTONull() throws Exception {
-        when(assembleiaService.criarAssembleia(any(AssembleiaDTO.class))).thenReturn(null);
+        when(assembleiaService.criarAssembleia(any(CriarAssembleiaDTO.class))).thenReturn(null);
 
         mockMvc.perform(post("/assembleias")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -54,8 +57,10 @@ public class AssembleiaControllerTest {
 
     @Test
     public void deveBuscarTodasAssembleias() throws Exception {
-        AssembleiaDTO assembleiaDTO = new AssembleiaDTO(LocalDateTime.now());
-        when(assembleiaService.buscarTodasAssembleias()).thenReturn(List.of(assembleiaDTO));
+        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
+        List<BuscarAssembleiaDTO> assembleias = new ArrayList<>();
+        assembleias.add(new BuscarAssembleiaDTO(assembleia));
+        when(assembleiaService.buscarTodasAssembleias()).thenReturn(assembleias);
 
         mockMvc.perform(get("/assembleias"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -73,8 +78,8 @@ public class AssembleiaControllerTest {
 
     @Test
     public void deveBuscarAssembleiaPorId() throws Exception {
-        AssembleiaDTO assembleiaDTO = new AssembleiaDTO(LocalDateTime.now());
-        when(assembleiaService.buscarAssembleiaPorId(any(Long.class))).thenReturn(assembleiaDTO);
+        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
+        when(assembleiaService.buscarAssembleiaPorId(any(Long.class))).thenReturn(new BuscarAssembleiaDTO(assembleia));
 
         mockMvc.perform(get("/assembleias/1"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -103,8 +108,9 @@ public class AssembleiaControllerTest {
 
     @Test
     public void deveFinalizarAssembleia() throws Exception {
-        List<AssembleiaDTO> assembleias = new ArrayList<>();
-        assembleias.add(new AssembleiaDTO(LocalDateTime.now()));
+        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
+        List<BuscarAssembleiaDTO> assembleias = new ArrayList<>();
+        assembleias.add(new BuscarAssembleiaDTO(assembleia));
         when(assembleiaService.buscarTodasAssembleias()).thenReturn(assembleias);
 
         mockMvc.perform(put("/assembleias/1"))
