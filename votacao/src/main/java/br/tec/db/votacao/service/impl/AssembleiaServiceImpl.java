@@ -47,10 +47,8 @@ public class AssembleiaServiceImpl implements AssembleiaService {
 
     @Override
     public void finalizarAssembleia(Long assembleiaId) throws RuntimeException {
-        Assembleia assembleia = assembleiaRepository.findById(assembleiaId).orElse(null);
-        if (assembleia == null) {
-            throw new RuntimeException("Assembleia não encontrada");
-        } else if (assembleia.getStatus().equals(AssembleiaStatusEnum.ENCERRADA)) {
+        Assembleia assembleia = assembleiaRepository.findById(assembleiaId).orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+        if (assembleia.getStatus().equals(AssembleiaStatusEnum.ENCERRADA)) {
             throw new RuntimeException("Assembleia já finalizada");
         } else {
             assembleia.setFim(LocalDateTime.now());
