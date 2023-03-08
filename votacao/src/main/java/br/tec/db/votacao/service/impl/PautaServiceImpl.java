@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class PautaServiceImpl implements PautaService {
@@ -54,6 +53,6 @@ public class PautaServiceImpl implements PautaService {
     @Override
     public List<BuscarPautaDTO> buscarPautasPorAssembleia(Long id) throws RuntimeException {
         Assembleia assembleia = assembleiaRepository.findById(id).orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
-        return assembleia.getPautas().stream().map(BuscarPautaDTO::new).collect(Collectors.toList());
+        return assembleia.getPautas().stream().map(BuscarPautaDTO::new).toList();
     }
 }
