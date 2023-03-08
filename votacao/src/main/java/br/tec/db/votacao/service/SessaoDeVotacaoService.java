@@ -1,17 +1,19 @@
 package br.tec.db.votacao.service;
 
-import br.tec.db.votacao.dto.SessaoDeVotacaoDTO;
+import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.BuscarSessaoDeVotacaoDTO;
+import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.CriarSessaoDeVotacaoDTO;
+import br.tec.db.votacao.model.SessaoDeVotacao;
 
 import java.util.List;
 
 public interface SessaoDeVotacaoService {
-    SessaoDeVotacaoDTO criarSessaoDeVotacao(SessaoDeVotacaoDTO sessaoDeVotacaoDTO) throws RuntimeException;
+    SessaoDeVotacao criarSessaoDeVotacao(CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO) throws RuntimeException;
 
-    SessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id) throws RuntimeException;
+    BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id) throws RuntimeException;
 
-    List<SessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() throws RuntimeException;
+    List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() throws RuntimeException;
 
-    SessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) throws RuntimeException;
+    BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) throws RuntimeException;
 
     void encerrarSessaoDeVotacao(Long id) throws RuntimeException;
 

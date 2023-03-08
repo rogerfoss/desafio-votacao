@@ -1,9 +1,11 @@
 package br.tec.db.votacao.service.impl;
 
-import br.tec.db.votacao.dto.SessaoDeVotacaoDTO;
+import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.BuscarSessaoDeVotacaoDTO;
+import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.CriarSessaoDeVotacaoDTO;
 import br.tec.db.votacao.enums.PautaStatusEnum;
 import br.tec.db.votacao.enums.SessaoDeVotacaoStatusEnum;
 import br.tec.db.votacao.enums.VotoStatusEnum;
+import br.tec.db.votacao.mapper.SessaoDeVotacaoMapper;
 import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.model.SessaoDeVotacao;
 import br.tec.db.votacao.repository.PautaRepository;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
@@ -30,50 +31,38 @@ public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
     }
 
     @Override
-    public SessaoDeVotacaoDTO criarSessaoDeVotacao(SessaoDeVotacaoDTO sessaoDeVotacaoDTO) throws RuntimeException {
-        Pauta pauta = pautaRepository.findById(sessaoDeVotacaoDTO.idPauta()).orElseThrow();
+    public SessaoDeVotacao criarSessaoDeVotacao(CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO) throws RuntimeException {
+        Pauta pauta = pautaRepository.findById(criarSessaoDeVotacaoDTO.idPauta()).orElseThrow();
         if (pauta.getStatus().equals(PautaStatusEnum.AGUARDANDO_VOTACAO)) {
-            SessaoDeVotacao sessaoDeVotacao = new SessaoDeVotacao();
-            sessaoDeVotacao.setPauta(pauta);
-            sessaoDeVotacao.setStatus(SessaoDeVotacaoStatusEnum.INICIADA);
+            SessaoDeVotacao sessaoDeVotacao = SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO);
             pauta.setSessaoDeVotacao(sessaoDeVotacao);
-            sessaoDeVotacaoRepository.save(sessaoDeVotacao);
-            return new SessaoDeVotacaoDTO(sessaoDeVotacao);
+            return sessaoDeVotacaoRepository.save(sessaoDeVotacao);
         } else {
             throw new RuntimeException("Não foi possível criar a sessão de votação, pauta já encerrada.");
         }
     }
 
     @Override
-    public SessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id) throws RuntimeException {
-        try {
-            return new SessaoDeVotacaoDTO(sessaoDeVotacaoRepository.findById(id).orElseThrow());
-        } catch (Exception e) {
-            throw new RuntimeException("Não foi possível encontrar a sessão de votação.");
-        }
+    public BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id) throws RuntimeException {
+        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada."));
+        return new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao);
     }
 
     @Override
-    public List<SessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() throws RuntimeException {
-        return sessaoDeVotacaoRepository.findAll().stream().map(SessaoDeVotacaoDTO::new).collect(Collectors.toList());
+    public List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() throws RuntimeException {
+        return sessaoDeVotacaoRepository.findAll().stream().map(BuscarSessaoDeVotacaoDTO::new).toList();
     }
 
     @Override
-    public SessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) throws RuntimeException {
-        try {
-            Pauta pauta = pautaRepository.findById(id).orElseThrow();
-            return new SessaoDeVotacaoDTO(pauta.getSessaoDeVotacao());
-        } catch (Exception e) {
-            throw new RuntimeException("Não há sessão de votação para a pauta informada.");
-        }
+    public BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) throws RuntimeException {
+        Pauta pauta = pautaRepository.findById(id).orElseThrow(() -> new RuntimeException("Sem sessão na pauta ou pauta não encontrada."));
+        return new BuscarSessaoDeVotacaoDTO(pauta.getSessaoDeVotacao());
     }
 
     @Override
     public void encerrarSessaoDeVotacao(Long id) throws RuntimeException {
-        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).orElse(null);
-        if (sessaoDeVotacao == null) {
-            throw new RuntimeException("Sessão de votação não encontrada.");
-        } else if (sessaoDeVotacao.getStatus().equals(SessaoDeVotacaoStatusEnum.ENCERRADA)) {
+        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada."));
+        if (sessaoDeVotacao.getStatus().equals(SessaoDeVotacaoStatusEnum.ENCERRADA)) {
             throw new RuntimeException("Sessão de votação já encerrada.");
         } else {
             sessaoDeVotacao.setFim(LocalDateTime.now());
@@ -84,15 +73,11 @@ public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
 
     @Override
     public void calcularResultadoDaSessaoDeVotacao(Long id) throws RuntimeException {
-        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).orElse(null);
-        if (sessaoDeVotacao == null) {
-            throw new RuntimeException("Sessão de votação não encontrada.");
-        } else {
-            long votosSim = sessaoDeVotacao.getVotos().stream().filter(voto -> voto.getStatus().equals(VotoStatusEnum.SIM)).count();
-            long votosNao = sessaoDeVotacao.getVotos().stream().filter(voto -> voto.getStatus().equals(VotoStatusEnum.NAO)).count();
-            sessaoDeVotacao.getPauta().setStatus(votosSim > votosNao ? PautaStatusEnum.APROVADA : PautaStatusEnum.REPROVADA);
-            pautaRepository.save(sessaoDeVotacao.getPauta());
-        }
+        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada."));
+        long votosSim = sessaoDeVotacao.getVotos().stream().filter(voto -> voto.getStatus().equals(VotoStatusEnum.SIM)).count();
+        long votosNao = sessaoDeVotacao.getVotos().stream().filter(voto -> voto.getStatus().equals(VotoStatusEnum.NAO)).count();
+        sessaoDeVotacao.getPauta().setStatus(votosSim > votosNao ? PautaStatusEnum.APROVADA : PautaStatusEnum.REPROVADA);
+        pautaRepository.save(sessaoDeVotacao.getPauta());
     }
 
 }
