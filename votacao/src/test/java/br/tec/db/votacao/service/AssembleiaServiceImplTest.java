@@ -7,15 +7,16 @@ import br.tec.db.votacao.mapper.AssembleiaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.repository.AssembleiaRepository;
 import br.tec.db.votacao.service.impl.AssembleiaServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,22 +25,29 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AssembleiaServiceImplTest {
 
+    private AssembleiaServiceImpl assembleiaService;
+
+    private CriarAssembleiaDTO criarAssembleiaDTO;
+
+    private Assembleia assembleia;
+
     @Mock
     private AssembleiaRepository assembleiaRepository;
 
-    @InjectMocks
-    private AssembleiaServiceImpl assembleiaService;
+    @BeforeEach
+    public void inicializar() {
+        assembleiaService = new AssembleiaServiceImpl(assembleiaRepository);
+        criarAssembleiaDTO = new CriarAssembleiaDTO(LocalDateTime.now());
+        assembleia = new Assembleia();
+        assembleia.setStatus(AssembleiaStatusEnum.INICIADA);
+    }
 
     @Test
     void deveCriarAssembleia() {
-        CriarAssembleiaDTO criarAssembleiaDTO = new CriarAssembleiaDTO(LocalDateTime.now());
-
         when(assembleiaRepository.save(any(Assembleia.class))).thenReturn(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
         Assembleia assembleia = assembleiaService.criarAssembleia(criarAssembleiaDTO);
-
         assertNotNull(assembleia);
         assertEquals(assembleia.getStatus(), AssembleiaStatusEnum.INICIADA);
-
     }
 
     @Test
@@ -64,9 +72,7 @@ class AssembleiaServiceImplTest {
 
     @Test
     void deveBuscarAssembleiaPorId() {
-        Assembleia assembleia = new Assembleia();
-        assembleia.setStatus(AssembleiaStatusEnum.INICIADA);
-        when(assembleiaRepository.findById(1L)).thenReturn(java.util.Optional.of(assembleia));
+        when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
         BuscarAssembleiaDTO assembleiaDTO = assembleiaService.buscarAssembleiaPorId(1L);
         assertNotNull(assembleiaDTO);
         assertEquals(assembleia.getStatus(), AssembleiaStatusEnum.INICIADA);
@@ -74,30 +80,27 @@ class AssembleiaServiceImplTest {
 
     @Test
     void deveLancarExcecaoAoBuscarAssembleiaPorIdInexistente() {
-        when(assembleiaRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+        when(assembleiaRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> assembleiaService.buscarAssembleiaPorId(1L));
     }
 
     @Test
     void deveFinalizarAssembleia() {
-        Assembleia assembleia = new Assembleia();
-        assembleia.setStatus(AssembleiaStatusEnum.INICIADA);
-        when(assembleiaRepository.findById(1L)).thenReturn(java.util.Optional.of(assembleia));
+        when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
         assembleiaService.finalizarAssembleia(1L);
         assertEquals(assembleia.getStatus(), AssembleiaStatusEnum.ENCERRADA);
     }
 
     @Test
     void deveLancarExcecaoAoFinalizarAssembleiaJaEncerrada() {
-        Assembleia assembleia = new Assembleia();
         assembleia.setStatus(AssembleiaStatusEnum.ENCERRADA);
-        when(assembleiaRepository.findById(1L)).thenReturn(java.util.Optional.of(assembleia));
+        when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
         assertThrows(RuntimeException.class, () -> assembleiaService.finalizarAssembleia(1L));
     }
 
     @Test
     void deveLancarExcecaoAoFinalizarAssembleiaInexistente() {
-        when(assembleiaRepository.findById(1L)).thenReturn(java.util.Optional.empty());
+        when(assembleiaRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> assembleiaService.finalizarAssembleia(1L));
     }
 

@@ -3,12 +3,16 @@ package br.tec.db.votacao.controller;
 import br.tec.db.votacao.dto.assembleiaDTO.BuscarAssembleiaDTO;
 import br.tec.db.votacao.dto.assembleiaDTO.CriarAssembleiaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
+import br.tec.db.votacao.mapper.AssembleiaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.service.AssembleiaService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,22 +29,42 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureJsonTesters
 public class AssembleiaControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private JacksonTester<CriarAssembleiaDTO> CriarAssembleiaDtoJson;
+
     @MockBean
     private AssembleiaService assembleiaService;
+
+    private List<BuscarAssembleiaDTO> assembleias;
+    private Assembleia assembleia1, assembleia2;
+
+    @BeforeEach
+    public void inicializar() {
+        assembleia1 = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
+        assembleia2 = new Assembleia(2L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
+
+        assembleias = new ArrayList<>();
+        assembleias.add(new BuscarAssembleiaDTO(assembleia1));
+        assembleias.add(new BuscarAssembleiaDTO(assembleia2));
+    }
+
 
     @Test
     public void deveCriarAssembleia() throws Exception {
 
-        when(assembleiaService.criarAssembleia(any(CriarAssembleiaDTO.class))).thenReturn(new Assembleia());
+        CriarAssembleiaDTO criarAssembleiaDTO = new CriarAssembleiaDTO(LocalDateTime.now());
+
+        when(assembleiaService.criarAssembleia(criarAssembleiaDTO)).thenReturn(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
 
         mockMvc.perform(post("/assembleias")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"inicio\": \"2023-09-01T10:00:00\"}"))
+                        .content(CriarAssembleiaDtoJson.write(criarAssembleiaDTO).getJson()))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
     }
@@ -57,40 +81,42 @@ public class AssembleiaControllerTest {
 
     @Test
     public void deveBuscarTodasAssembleias() throws Exception {
-        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
-        List<BuscarAssembleiaDTO> assembleias = new ArrayList<>();
-        assembleias.add(new BuscarAssembleiaDTO(assembleia));
+
         when(assembleiaService.buscarTodasAssembleias()).thenReturn(assembleias);
 
-        mockMvc.perform(get("/assembleias"))
+        mockMvc.perform(get("/assembleias")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 
     @Test
-    public void deveRetornarNotFoundSeEstiverVazioAoBuscarTodasAssembleias() throws Exception {
-        when(assembleiaService.buscarTodasAssembleias()).thenReturn(List.of());
+    public void deveRetornarNotFoundSeNaoHouverAssembleias() throws Exception {
+        List<BuscarAssembleiaDTO> assembleias = new ArrayList<>();
 
-        mockMvc.perform(get("/assembleias"))
+        when(assembleiaService.buscarTodasAssembleias()).thenReturn(assembleias);
+
+        mockMvc.perform(get("/assembleias")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void deveBuscarAssembleiaPorId() throws Exception {
-        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
-        when(assembleiaService.buscarAssembleiaPorId(any(Long.class))).thenReturn(new BuscarAssembleiaDTO(assembleia));
+        when(assembleiaService.buscarAssembleiaPorId(1L)).thenReturn(new BuscarAssembleiaDTO(assembleia1));
 
-        mockMvc.perform(get("/assembleias/1"))
+        mockMvc.perform(get("/assembleias/1")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Test
     public void deveRetornarNotFoundAoBuscarAssembleiaPorIdInexistente() throws Exception {
-        when(assembleiaService.buscarAssembleiaPorId(any(Long.class))).thenReturn(null);
-
-        mockMvc.perform(get("/assembleias/85"))
+        mockMvc.perform(get("/assembleias/3")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
@@ -108,12 +134,8 @@ public class AssembleiaControllerTest {
 
     @Test
     public void deveFinalizarAssembleia() throws Exception {
-        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
-        List<BuscarAssembleiaDTO> assembleias = new ArrayList<>();
-        assembleias.add(new BuscarAssembleiaDTO(assembleia));
-        when(assembleiaService.buscarTodasAssembleias()).thenReturn(assembleias);
-
-        mockMvc.perform(put("/assembleias/1"))
+        mockMvc.perform(put("/assembleias/1")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
