@@ -1,6 +1,8 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.PautaDTO;
+import br.tec.db.votacao.dto.pautaDTO.BuscarPautaDTO;
+import br.tec.db.votacao.dto.pautaDTO.CriarPautaDTO;
+import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.service.PautaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,22 +23,22 @@ public class PautaController {
     }
 
     @PostMapping
-    public ResponseEntity<PautaDTO> criarPauta(@RequestBody PautaDTO pautaDTO) {
-        return pautaDTO == null ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) : new ResponseEntity<>(pautaService.criarPauta(pautaDTO), HttpStatus.CREATED);
+    public ResponseEntity<Pauta> criarPauta(@RequestBody CriarPautaDTO criarPautaDTO) {
+        return criarPautaDTO == null ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) : new ResponseEntity<>(pautaService.criarPauta(criarPautaDTO), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PautaDTO> buscarPautaPorID(@PathVariable Long id) {
+    public ResponseEntity<BuscarPautaDTO> buscarPautaPorID(@PathVariable Long id) {
         return pautaService.buscarPautaPorId(id) == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(pautaService.buscarPautaPorId(id), HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<PautaDTO>> buscarTodasAsPautas() {
+    public ResponseEntity<List<BuscarPautaDTO>> buscarTodasAsPautas() {
         return pautaService.buscarTodasAsPautas().isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(pautaService.buscarTodasAsPautas(), HttpStatus.OK);
     }
 
     @GetMapping("/assembleia/{id}")
-    public ResponseEntity<List<PautaDTO>> buscarPautasPorAssembleia(@PathVariable Long id) {
+    public ResponseEntity<List<BuscarPautaDTO>> buscarPautasPorAssembleia(@PathVariable Long id) {
         return pautaService.buscarPautasPorAssembleia(id).isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(pautaService.buscarPautasPorAssembleia(id), HttpStatus.OK);
     }
 }

@@ -1,8 +1,9 @@
 package br.tec.db.votacao.service.impl;
 
-import br.tec.db.votacao.dto.PautaDTO;
+import br.tec.db.votacao.dto.pautaDTO.BuscarPautaDTO;
+import br.tec.db.votacao.dto.pautaDTO.CriarPautaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
-import br.tec.db.votacao.enums.PautaStatusEnum;
+import br.tec.db.votacao.mapper.PautaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.repository.AssembleiaRepository;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,42 +29,31 @@ public class PautaServiceImpl implements PautaService {
     }
 
     @Override
-    public PautaDTO criarPauta(PautaDTO pautaDTO) throws RuntimeException {
-        Assembleia assembleia = assembleiaRepository.findById(pautaDTO.idAssembleia()).orElseThrow();
+    public Pauta criarPauta(CriarPautaDTO criarPautaDTO) throws RuntimeException {
+        Assembleia assembleia = assembleiaRepository.findById(criarPautaDTO.idAssembleia()).orElseThrow();
         if (assembleia.getStatus().equals(AssembleiaStatusEnum.INICIADA)) {
-            Pauta pauta = new Pauta();
-            pauta.setTitulo(pautaDTO.titulo());
-            pauta.setAssembleia(assembleia);
-            pauta.setStatus(PautaStatusEnum.AGUARDANDO_VOTACAO);
+            Pauta pauta = PautaMapper.buildPauta(criarPautaDTO);
             assembleia.getPautas().add(pauta);
-            pautaRepository.save(pauta);
-            return new PautaDTO(pauta);
+            return pautaRepository.save(pauta);
         } else {
             throw new RuntimeException("Não foi possível criar a pauta, assembleia já encerrada.");
         }
     }
 
     @Override
-    public PautaDTO buscarPautaPorId(Long id) throws RuntimeException {
-        try {
-            return new PautaDTO(Objects.requireNonNull(pautaRepository.findById(id).orElse(null)));
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Pauta não encontrada");
-        }
+    public BuscarPautaDTO buscarPautaPorId(Long id) throws RuntimeException {
+        Pauta pauta = pautaRepository.findById(id).orElseThrow(() -> new RuntimeException("Pauta não encontrada"));
+        return new BuscarPautaDTO(pauta);
     }
 
     @Override
-    public List<PautaDTO> buscarTodasAsPautas() {
-        return pautaRepository.findAll().stream().map(PautaDTO::new).collect(Collectors.toList());
+    public List<BuscarPautaDTO> buscarTodasAsPautas() throws RuntimeException {
+        return pautaRepository.findAll().stream().map(BuscarPautaDTO::new).toList();
     }
 
     @Override
-    public List<PautaDTO> buscarPautasPorAssembleia(Long id) {
-        try {
-            Assembleia assembleia = assembleiaRepository.findById(id).orElseThrow();
-            return assembleia.getPautas().stream().map(PautaDTO::new).collect(Collectors.toList());
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Assembleia não encontrada");
-        }
+    public List<BuscarPautaDTO> buscarPautasPorAssembleia(Long id) throws RuntimeException {
+        Assembleia assembleia = assembleiaRepository.findById(id).orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+        return assembleia.getPautas().stream().map(BuscarPautaDTO::new).collect(Collectors.toList());
     }
 }

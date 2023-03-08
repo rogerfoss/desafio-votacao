@@ -1,15 +1,17 @@
 package br.tec.db.votacao.service;
 
-import br.tec.db.votacao.dto.PautaDTO;
+import br.tec.db.votacao.dto.pautaDTO.BuscarPautaDTO;
+import br.tec.db.votacao.dto.pautaDTO.CriarPautaDTO;
+import br.tec.db.votacao.model.Pauta;
 
 import java.util.List;
 
 public interface PautaService {
-    PautaDTO criarPauta(PautaDTO pautaDTO) throws RuntimeException;
+    Pauta criarPauta(CriarPautaDTO criarPautaDTO) throws RuntimeException;
 
-    PautaDTO buscarPautaPorId(Long id) throws RuntimeException;
+    BuscarPautaDTO buscarPautaPorId(Long id) throws RuntimeException;
 
-    List<PautaDTO> buscarTodasAsPautas() throws RuntimeException;
+    List<BuscarPautaDTO> buscarTodasAsPautas() throws RuntimeException;
 
-    List<PautaDTO> buscarPautasPorAssembleia(Long id) throws RuntimeException;
+    List<BuscarPautaDTO> buscarPautasPorAssembleia(Long id) throws RuntimeException;
 }
