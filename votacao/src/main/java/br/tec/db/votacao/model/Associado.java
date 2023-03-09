@@ -4,11 +4,11 @@ import br.tec.db.votacao.enums.AssociadoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import org.hibernate.validator.constraints.br.CPF;
 
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "associado")
@@ -23,7 +23,6 @@ public class Associado {
     private String nome;
 
     @NotBlank
-    @CPF(message = "CPF inválido")
     private String cpf;
 
     @Enumerated(EnumType.STRING)

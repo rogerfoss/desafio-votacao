@@ -1,7 +1,8 @@
 package br.tec.db.votacao.service.impl;
 
-import br.tec.db.votacao.dto.AssociadoDTO;
-import br.tec.db.votacao.enums.AssociadoStatusEnum;
+import br.tec.db.votacao.dto.associadoDTO.BuscarAssociadoDTO;
+import br.tec.db.votacao.dto.associadoDTO.CriarAssociadoDTO;
+import br.tec.db.votacao.mapper.AssociadoMapper;
 import br.tec.db.votacao.model.Associado;
 import br.tec.db.votacao.repository.AssociadoRepository;
 import br.tec.db.votacao.service.AssociadoService;
@@ -9,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class AssociadoServiceImpl implements AssociadoService {
@@ -23,30 +22,23 @@ public class AssociadoServiceImpl implements AssociadoService {
     }
 
     @Override
-    public AssociadoDTO salvarAssociado(AssociadoDTO associadoDTO) throws RuntimeException {
-        Associado associado = new Associado();
-        associado.setCpf(associadoDTO.cpf());
-        associado.setNome(associadoDTO.nome());
-        associado.setStatus(AssociadoStatusEnum.PODE_VOTAR);
+    public Associado salvarAssociado(CriarAssociadoDTO criarAssociadoDTO) throws RuntimeException {
         try {
-            return new AssociadoDTO(associadoRepository.save(associado));
+            return associadoRepository.save(AssociadoMapper.buildAssociado(criarAssociadoDTO));
         } catch (RuntimeException e) {
-            throw new RuntimeException("Erro ao salvar associado");
+            throw new RuntimeException("Erro ao criar associado");
         }
     }
 
     @Override
-    public AssociadoDTO buscarAssociadoPorId(Long id) throws RuntimeException {
-        try {
-            return new AssociadoDTO(Objects.requireNonNull(associadoRepository.findById(id).orElse(null)));
-        } catch (RuntimeException e) {
-            throw new RuntimeException("Associado não encontrado");
-        }
+    public BuscarAssociadoDTO buscarAssociadoPorId(Long id) throws RuntimeException {
+        Associado associado = this.associadoRepository.findById(id).orElseThrow(() -> new RuntimeException("Associado não encontrado"));
+        return new BuscarAssociadoDTO(associado);
     }
 
     @Override
-    public List<AssociadoDTO> buscarTodosOsAssociados() throws RuntimeException {
-        return associadoRepository.findAll().stream().map(AssociadoDTO::new).collect(Collectors.toList());
+    public List<BuscarAssociadoDTO> buscarTodosOsAssociados() throws RuntimeException {
+        return associadoRepository.findAll().stream().map(BuscarAssociadoDTO::new).toList();
     }
 
 }
