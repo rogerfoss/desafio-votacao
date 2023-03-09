@@ -1,12 +1,12 @@
 package br.tec.db.votacao.service;
 
-import br.tec.db.votacao.dto.VotoDTO;
-import br.tec.db.votacao.enums.PautaStatusEnum;
+import br.tec.db.votacao.dto.votoDTO.VotarDTO;
 import br.tec.db.votacao.enums.SessaoDeVotacaoStatusEnum;
 import br.tec.db.votacao.enums.VotoStatusEnum;
 import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.model.SessaoDeVotacao;
 import br.tec.db.votacao.model.Voto;
+import br.tec.db.votacao.repository.SessaoDeVotacaoRepository;
 import br.tec.db.votacao.repository.VotoRepository;
 import br.tec.db.votacao.service.impl.VotoServiceImpl;
 import org.junit.jupiter.api.Disabled;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -31,23 +32,24 @@ class VotoServiceImplTest {
     @InjectMocks
     private VotoServiceImpl votoService;
 
+    @Mock
+    private SessaoDeVotacaoService sessaoDeVotacaoService;
+
+    @Mock
+    private SessaoDeVotacaoRepository sessaoDeVotacaoRepository;
+
     @Disabled
     @Test
-    void deveCriarVoto() {
-        Pauta pauta = new Pauta();
-        pauta.setStatus(PautaStatusEnum.AGUARDANDO_VOTACAO);
-        SessaoDeVotacao sessaoDeVotacao = new SessaoDeVotacao();
-        sessaoDeVotacao.setStatus(SessaoDeVotacaoStatusEnum.INICIADA);
-        sessaoDeVotacao.setPauta(pauta);
-        sessaoDeVotacao.setInicio(LocalDateTime.now());
-        sessaoDeVotacao.setFim(LocalDateTime.now().plusMinutes(1));
-        Voto voto = new Voto();
-        voto.setStatus(VotoStatusEnum.SIM);
-        voto.setSessaoDeVotacao(sessaoDeVotacao);
-        when(votoRepository.save(voto)).thenReturn(voto);
-        VotoDTO votoDTO = votoService.votar(new VotoDTO(voto));
-        assertNotNull(votoDTO);
-        assertEquals(voto.getStatus(), VotoStatusEnum.SIM);
+    public void votarTest() {
+        VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 1L);
+        SessaoDeVotacao sessaoDeVotacao = new SessaoDeVotacao(1L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
+
+        when(this.votoRepository.save(Mockito.any(Voto.class))).thenReturn(new Voto(1L, VotoStatusEnum.SIM, new SessaoDeVotacao(), null));
+
+        Voto voto = votoService.votar(votarDTO);
+
+        assertNotNull(voto);
+        assertEquals(VotoStatusEnum.SIM, voto.getStatus());
     }
 
 }

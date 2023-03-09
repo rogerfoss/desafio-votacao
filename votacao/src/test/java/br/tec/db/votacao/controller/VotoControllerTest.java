@@ -1,13 +1,21 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.VotoDTO;
+import br.tec.db.votacao.dto.votoDTO.BuscarVotoDTO;
+import br.tec.db.votacao.dto.votoDTO.VotarDTO;
 import br.tec.db.votacao.enums.VotoStatusEnum;
+import br.tec.db.votacao.mapper.VotoMapper;
+import br.tec.db.votacao.model.Associado;
+import br.tec.db.votacao.model.SessaoDeVotacao;
+import br.tec.db.votacao.model.Voto;
 import br.tec.db.votacao.service.VotoService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,35 +32,73 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureJsonTesters
 class VotoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private JacksonTester<VotarDTO> votarDtoJson;
+
     @MockBean
     private VotoService votoService;
 
-    @Test
-    public void deveCriarUmVotoEmUmaSessao() throws Exception {
-        VotoDTO votoDTO = new VotoDTO(VotoStatusEnum.SIM, 1L, 1L);
-        when(votoService.votar(any(VotoDTO.class))).thenReturn(votoDTO);
+    private List<BuscarVotoDTO> votos;
+    private Voto voto1, voto2;
 
-        mockMvc.perform(post("/votos")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"voto\": \"SIM\", \"idSessaoDeVotacao\": \"1\", \"idAssociado\": \"1\"}"))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+    @BeforeEach
+    public void inicializar() {
+        voto1 = new Voto(1L, VotoStatusEnum.SIM, new SessaoDeVotacao(), new Associado());
+        voto2 = new Voto(2L, VotoStatusEnum.NAO, new SessaoDeVotacao(), new Associado());
 
+        votos = new ArrayList<>();
+        votos.add(new BuscarVotoDTO(voto1));
+        votos.add(new BuscarVotoDTO(voto2));
     }
 
     @Test
-    public void deveRetornarVotoPorId() throws Exception {
-        VotoDTO votoDTO = new VotoDTO(VotoStatusEnum.SIM, 1L, 1L);
-        when(votoService.buscarVotoPorId(any(Long.class))).thenReturn(votoDTO);
+    public void deveVotarEmUmaSessao() throws Exception {
+        VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 1L);
+        when(votoService.votar(votarDTO)).thenReturn(VotoMapper.buildVoto(votarDTO));
+
+        mockMvc.perform(post("/votos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(votarDtoJson.write(votarDTO).getJson()))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoVotarEmSessaoInexistente() throws Exception {
+        VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 99L, 1L);
+
+        when(votoService.votar(votarDTO)).thenThrow(new RuntimeException("Sessão de votação inexistente"));
+
+        mockMvc.perform(post("/votos")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoVotarEmSessaoEncerrada() throws Exception {
+        VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 1L);
+
+        when(votoService.votar(votarDTO)).thenThrow(new RuntimeException("Sessão de votação encerrada"));
+
+        mockMvc.perform(post("/votos")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void deveBuscarVotoPorId() throws Exception {
+        when(votoService.buscarVotoPorId(1L)).thenReturn(new BuscarVotoDTO(voto1));
 
         mockMvc.perform(get("/votos/1"))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L));
     }
 
     @Disabled
@@ -71,10 +117,8 @@ class VotoControllerTest {
     }
 
     @Test
-    public void deveRetornarTodosOsVotos() throws Exception {
-        List<VotoDTO> votos = new ArrayList<>();
-        votos.add(new VotoDTO(VotoStatusEnum.SIM, 1L, 1L));
-        votos.add(new VotoDTO(VotoStatusEnum.NAO, 2L, 2L));
+    public void deveBuscarTodosOsVotos() throws Exception {
+
         when(votoService.buscarTodosOsVotos()).thenReturn(votos);
 
         mockMvc.perform(get("/votos"))
@@ -85,7 +129,7 @@ class VotoControllerTest {
 
     @Test
     public void deveRetornarNotFoundAoBuscarTodosOsVotosVazio() throws Exception {
-        List<VotoDTO> votos = new ArrayList<>();
+        List<BuscarVotoDTO> votos = new ArrayList<>();
         when(votoService.buscarTodosOsVotos()).thenReturn(votos);
 
         mockMvc.perform(get("/votos"))
@@ -94,9 +138,7 @@ class VotoControllerTest {
 
     @Test
     public void deveBuscarVotosPorSessaoDeVotacao() throws Exception {
-        List<VotoDTO> votos = new ArrayList<>();
-        votos.add(new VotoDTO(VotoStatusEnum.SIM, 1L, 1L));
-        votos.add(new VotoDTO(VotoStatusEnum.NAO, 1L, 2L));
+
         when(votoService.buscarVotosPorSessaoDeVotacao(any(Long.class))).thenReturn(votos);
 
         mockMvc.perform(get("/votos/sessao/1"))
@@ -107,7 +149,7 @@ class VotoControllerTest {
 
     @Test
     public void deveRetornarNotFoundAoBuscarVotosPorSessaoDeVotacaoVazio() throws Exception {
-        List<VotoDTO> votos = new ArrayList<>();
+        List<BuscarVotoDTO> votos = new ArrayList<>();
         when(votoService.buscarVotosPorSessaoDeVotacao(any(Long.class))).thenReturn(votos);
 
         mockMvc.perform(get("/votos/sessao/1"))
