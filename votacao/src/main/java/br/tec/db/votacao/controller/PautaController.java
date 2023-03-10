@@ -32,7 +32,9 @@ public class PautaController {
     })
     @PostMapping
     public ResponseEntity<Pauta> criarPauta(@RequestBody CriarPautaDTO criarPautaDTO) {
-        return criarPautaDTO == null ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) : new ResponseEntity<>(pautaService.criarPauta(criarPautaDTO), HttpStatus.CREATED);
+        return criarPautaDTO == null
+                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
+                : new ResponseEntity<>(pautaService.criarPauta(criarPautaDTO), HttpStatus.CREATED);
     }
 
     @Operation(description = "Busca uma pauta por id")
@@ -42,7 +44,9 @@ public class PautaController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarPautaDTO> buscarPautaPorID(@PathVariable Long id) {
-        return pautaService.buscarPautaPorId(id) == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(pautaService.buscarPautaPorId(id), HttpStatus.OK);
+        return pautaService.buscarPautaPorId(id) == null
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(pautaService.buscarPautaPorId(id), HttpStatus.OK);
     }
 
     @Operation(description = "Busca todas as pautas")
@@ -52,16 +56,21 @@ public class PautaController {
     })
     @GetMapping
     public ResponseEntity<List<BuscarPautaDTO>> buscarTodasAsPautas() {
-        return pautaService.buscarTodasAsPautas().isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(pautaService.buscarTodasAsPautas(), HttpStatus.OK);
+        return pautaService.buscarTodasAsPautas().isEmpty()
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(pautaService.buscarTodasAsPautas(), HttpStatus.OK);
     }
 
     @Operation(description = "Busca todas as pautas de uma assembleia")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pautas encontradas com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar uma pauta com o id da assembleia informado")
+            @ApiResponse(responseCode = "404",
+                    description = "Não foi possível encontrar uma pauta com o id da assembleia informado")
     })
     @GetMapping("/assembleia/{id}")
     public ResponseEntity<List<BuscarPautaDTO>> buscarPautasPorAssembleia(@PathVariable Long id) {
-        return pautaService.buscarPautasPorAssembleia(id).isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(pautaService.buscarPautasPorAssembleia(id), HttpStatus.OK);
+        return pautaService.buscarPautasPorAssembleia(id).isEmpty()
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(pautaService.buscarPautasPorAssembleia(id), HttpStatus.OK);
     }
 }

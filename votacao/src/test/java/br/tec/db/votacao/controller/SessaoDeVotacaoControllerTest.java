@@ -47,8 +47,11 @@ public class SessaoDeVotacaoControllerTest {
 
     @BeforeEach
     public void inicializar() {
-        sessaoDeVotacao1 = new SessaoDeVotacao(1L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
-        sessaoDeVotacao2 = new SessaoDeVotacao(2L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
+        sessaoDeVotacao1 = new SessaoDeVotacao(1L, LocalDateTime.now(), null,
+                SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
+
+        sessaoDeVotacao2 = new SessaoDeVotacao(2L, LocalDateTime.now(), null,
+                SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
 
         sessoesDeVotacao = new ArrayList<>();
         sessoesDeVotacao.add(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
@@ -58,7 +61,8 @@ public class SessaoDeVotacaoControllerTest {
     @Test
     public void deveCriarUmaSessaoDeVotacaoEmUmaPauta() throws Exception {
         CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO = new CriarSessaoDeVotacaoDTO(LocalDateTime.now(), 1L);
-        when(sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDTO)).thenReturn(SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO));
+        when(sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDTO))
+                .thenReturn(SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO));
 
 
         mockMvc.perform(post("/sessao-de-votacao")
@@ -79,7 +83,8 @@ public class SessaoDeVotacaoControllerTest {
 
     @Test
     public void deveRetornarBadRequestAoCriarSessaoEmUmaPautaJaEncerrada() throws Exception {
-        when(sessaoDeVotacaoService.criarSessaoDeVotacao(any(CriarSessaoDeVotacaoDTO.class))).thenThrow(new RuntimeException("Pauta já encerrada!"));
+        when(sessaoDeVotacaoService.criarSessaoDeVotacao(any(CriarSessaoDeVotacaoDTO.class)))
+                .thenThrow(new RuntimeException("Pauta já encerrada!"));
 
         mockMvc.perform(post("/sessao-de-votacao")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -110,7 +115,8 @@ public class SessaoDeVotacaoControllerTest {
     @Test
     public void deveBuscarSessaoDeVotacaoPorId() throws Exception {
 
-        when(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorId(1L)).thenReturn(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
+        when(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorId(1L))
+                .thenReturn(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
 
         mockMvc.perform(get("/sessao-de-votacao/1")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -137,7 +143,8 @@ public class SessaoDeVotacaoControllerTest {
     @Test
     public void deveBuscarSessaoDeVotacaoPorPauta() throws Exception {
 
-        when(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(1L)).thenReturn(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
+        when(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(1L))
+                .thenReturn(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
 
         mockMvc.perform(get("/sessao-de-votacao/pauta/1")
                         .contentType(MediaType.APPLICATION_JSON))

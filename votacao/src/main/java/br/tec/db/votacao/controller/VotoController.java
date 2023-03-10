@@ -32,7 +32,9 @@ public class VotoController {
     })
     @PostMapping
     public ResponseEntity<Voto> votar(@RequestBody VotarDTO votarDTO) {
-        return votarDTO == null ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) : new ResponseEntity<>(votoService.votar(votarDTO), HttpStatus.CREATED);
+        return votarDTO == null
+                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
+                : new ResponseEntity<>(votoService.votar(votarDTO), HttpStatus.CREATED);
     }
 
     @Operation(description = "Busca um voto por id")
@@ -42,7 +44,9 @@ public class VotoController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarVotoDTO> buscarVotoPorId(@PathVariable Long id) {
-        return id == null ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) : new ResponseEntity<>(votoService.buscarVotoPorId(id), HttpStatus.OK);
+        return id == null
+                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
+                : new ResponseEntity<>(votoService.buscarVotoPorId(id), HttpStatus.OK);
     }
 
     @Operation(description = "Busca todos os votos")
@@ -52,16 +56,21 @@ public class VotoController {
     })
     @GetMapping
     public ResponseEntity<List<BuscarVotoDTO>> buscarTodosOsVotos() {
-        return votoService.buscarTodosOsVotos().isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(votoService.buscarTodosOsVotos(), HttpStatus.OK);
+        return votoService.buscarTodosOsVotos().isEmpty()
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(votoService.buscarTodosOsVotos(), HttpStatus.OK);
     }
 
     @Operation(description = "Busca todos os votos de uma sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Votos encontrados com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhum voto para a sessão de votação informada")
+            @ApiResponse(responseCode = "404",
+                    description = "Não foi possível encontrar nenhum voto para a sessão de votação informada")
     })
     @GetMapping("/sessao/{id}")
     public ResponseEntity<List<BuscarVotoDTO>> buscarVotosPorSessaoDeVotacao(@PathVariable Long id) {
-        return votoService.buscarVotosPorSessaoDeVotacao(id).isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(votoService.buscarVotosPorSessaoDeVotacao(id), HttpStatus.OK);
+        return votoService.buscarVotosPorSessaoDeVotacao(id).isEmpty()
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(votoService.buscarVotosPorSessaoDeVotacao(id), HttpStatus.OK);
     }
 }

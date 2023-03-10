@@ -43,7 +43,9 @@ class SessaoDeVotacaoServiceImplTest {
         CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO = new CriarSessaoDeVotacaoDTO(LocalDateTime.now(), 1L);
         Pauta pauta = new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, null, null);
 
-        when(this.sessaoDeVotacaoRepository.save(Mockito.any(SessaoDeVotacao.class))).thenReturn(new SessaoDeVotacao(1L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA, pauta, null));
+        when(this.sessaoDeVotacaoRepository.save(Mockito.any(SessaoDeVotacao.class)))
+                .thenReturn(new SessaoDeVotacao(1L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA,
+                        pauta, null));
 
         SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDTO);
 

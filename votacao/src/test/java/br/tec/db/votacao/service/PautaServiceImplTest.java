@@ -42,9 +42,14 @@ class PautaServiceImplTest {
     private List<Pauta> listaPautas() {
         List<Pauta> list = new ArrayList<>();
 
-        list.add(new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null), null));
-        list.add(new Pauta(2L, "Pauta 2", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(2L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null), null));
-        list.add(new Pauta(3L, "Pauta 3", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(3L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null), null));
+        list.add(new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(1L, LocalDateTime.now(),
+                null, AssembleiaStatusEnum.INICIADA, null, null), null));
+
+        list.add(new Pauta(2L, "Pauta 2", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(2L, LocalDateTime.now(),
+                null, AssembleiaStatusEnum.INICIADA, null, null), null));
+
+        list.add(new Pauta(3L, "Pauta 3", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(3L, LocalDateTime.now(),
+                null, AssembleiaStatusEnum.INICIADA, null, null), null));
 
         return list;
     }
@@ -53,10 +58,14 @@ class PautaServiceImplTest {
     @Test
     public void criarPautaTest() {
         CriarPautaDTO criarPautaDTO = new CriarPautaDTO("Pauta 1", 1L);
-        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
+        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null,
+                AssembleiaStatusEnum.INICIADA, null, null);
 
-        Mockito.when(this.assembleiaRepository.findById(criarPautaDTO.idAssembleia())).thenReturn(Optional.of(assembleia));
-        Mockito.when(this.pautaRepository.save(Mockito.any(Pauta.class))).thenReturn(new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, assembleia, null));
+        Mockito.when(this.assembleiaRepository.findById(criarPautaDTO.idAssembleia()))
+                .thenReturn(Optional.of(assembleia));
+
+        Mockito.when(this.pautaRepository.save(Mockito.any(Pauta.class)))
+                .thenReturn(new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, assembleia, null));
 
         Pauta pautaCriada = pautaService.criarPauta(criarPautaDTO);
 

@@ -13,6 +13,7 @@ public record BuscarSessaoDeVotacaoDTO(
         Long pautaId
 ) {
     public BuscarSessaoDeVotacaoDTO(SessaoDeVotacao sessaoDeVotacao) {
-        this(sessaoDeVotacao.getId(), sessaoDeVotacao.getInicio(), sessaoDeVotacao.getFim(), sessaoDeVotacao.getStatus(), sessaoDeVotacao.getPauta().getId());
+        this(sessaoDeVotacao.getId(), sessaoDeVotacao.getInicio(), sessaoDeVotacao.getFim(),
+                sessaoDeVotacao.getStatus(), sessaoDeVotacao.getPauta().getId());
     }
 }

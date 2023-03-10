@@ -41,13 +41,17 @@ public class AssembleiaServiceImpl implements AssembleiaService {
 
     @Override
     public BuscarAssembleiaDTO buscarAssembleiaPorId(Long AssembleiaId) throws RuntimeException {
-        Assembleia assembleia = this.assembleiaRepository.findById(AssembleiaId).orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+        Assembleia assembleia = this.assembleiaRepository.findById(AssembleiaId)
+                .orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+
         return new BuscarAssembleiaDTO(assembleia);
     }
 
     @Override
     public void finalizarAssembleia(Long assembleiaId) throws RuntimeException {
-        Assembleia assembleia = assembleiaRepository.findById(assembleiaId).orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+        Assembleia assembleia = assembleiaRepository.findById(assembleiaId)
+                .orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+
         if (assembleia.getStatus().equals(AssembleiaStatusEnum.ENCERRADA)) {
             throw new RuntimeException("Assembleia já finalizada");
         } else {

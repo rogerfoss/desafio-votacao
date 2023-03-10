@@ -42,9 +42,11 @@ class VotoServiceImplTest {
     @Test
     public void votarTest() {
         VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 1L);
-        SessaoDeVotacao sessaoDeVotacao = new SessaoDeVotacao(1L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
+        SessaoDeVotacao sessaoDeVotacao = new SessaoDeVotacao(1L, LocalDateTime.now(), null,
+                SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
 
-        when(this.votoRepository.save(Mockito.any(Voto.class))).thenReturn(new Voto(1L, VotoStatusEnum.SIM, new SessaoDeVotacao(), null));
+        when(this.votoRepository.save(Mockito.any(Voto.class))).thenReturn(new Voto(1L, VotoStatusEnum.SIM,
+                new SessaoDeVotacao(), null));
 
         Voto voto = votoService.votar(votarDTO);
 

@@ -32,17 +32,22 @@ public class AssociadoController {
     })
     @PostMapping
     public ResponseEntity<Associado> salvarAssociado(@RequestBody CriarAssociadoDTO criarAssociadoDTO) {
-        return criarAssociadoDTO == null ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) : new ResponseEntity<>(associadoService.salvarAssociado(criarAssociadoDTO), HttpStatus.CREATED);
+        return criarAssociadoDTO == null
+                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
+                : new ResponseEntity<>(associadoService.salvarAssociado(criarAssociadoDTO), HttpStatus.CREATED);
     }
 
     @Operation(description = "Busca um associado por id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Associado encontrado com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar um associado com o id informado")
+            @ApiResponse(responseCode = "404",
+                    description = "Não foi possível encontrar um associado com o id informado")
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarAssociadoDTO> buscarAssociadoPorID(@PathVariable Long id) {
-        return associadoService.buscarAssociadoPorId(id) == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(associadoService.buscarAssociadoPorId(id), HttpStatus.OK);
+        return associadoService.buscarAssociadoPorId(id) == null
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(associadoService.buscarAssociadoPorId(id), HttpStatus.OK);
     }
 
     @Operation(description = "Busca todos os associados")
@@ -52,7 +57,9 @@ public class AssociadoController {
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssociadoDTO>> buscarTodosOsAssociados() {
-        return associadoService.buscarTodosOsAssociados().isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(associadoService.buscarTodosOsAssociados(), HttpStatus.OK);
+        return associadoService.buscarTodosOsAssociados().isEmpty()
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(associadoService.buscarTodosOsAssociados(), HttpStatus.OK);
     }
 
 }

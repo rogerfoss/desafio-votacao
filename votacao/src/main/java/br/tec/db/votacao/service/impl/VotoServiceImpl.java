@@ -27,7 +27,9 @@ public class VotoServiceImpl implements VotoService {
     private final AssociadoRepository associadoRepository;
 
     @Autowired
-    public VotoServiceImpl(VotoRepository votoRepository, SessaoDeVotacaoRepository sessaoDeVotacaoRepository, AssociadoRepository associadoRepository) {
+    public VotoServiceImpl(VotoRepository votoRepository, SessaoDeVotacaoRepository sessaoDeVotacaoRepository,
+                           AssociadoRepository associadoRepository) {
+
         this.votoRepository = votoRepository;
         this.sessaoDeVotacaoRepository = sessaoDeVotacaoRepository;
         this.associadoRepository = associadoRepository;
@@ -35,11 +37,14 @@ public class VotoServiceImpl implements VotoService {
 
     @Override
     public Voto votar(VotarDTO votarDTO) {
-        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(votarDTO.idSessaoDeVotacao()).orElseThrow();
+        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(votarDTO.idSessaoDeVotacao())
+                .orElseThrow();
+
         Associado associado = associadoRepository.findById(votarDTO.idAssociado()).orElseThrow();
         if (sessaoDeVotacao.getStatus().equals(SessaoDeVotacaoStatusEnum.ENCERRADA)) {
             throw new RuntimeException("Sessão de votação encerrada");
-        } else if (sessaoDeVotacao.getVotos().stream().anyMatch(voto -> voto.getAssociado().getId().equals(associado.getId()))) {
+        } else if (sessaoDeVotacao.getVotos().stream()
+                .anyMatch(voto -> voto.getAssociado().getId().equals(associado.getId()))) {
             throw new RuntimeException("Associado já votou nesta sessão");
         } else {
             Voto voto = VotoMapper.buildVoto(votarDTO);
@@ -62,7 +67,8 @@ public class VotoServiceImpl implements VotoService {
 
     @Override
     public List<BuscarVotoDTO> buscarVotosPorSessaoDeVotacao(Long id) {
-        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada"));
+        SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).
+                orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada"));
         return sessaoDeVotacao.getVotos().stream().map(BuscarVotoDTO::new).collect(Collectors.toList());
     }
 }

@@ -32,7 +32,9 @@ public class AssembleiaController {
     })
     @PostMapping
     public ResponseEntity<Assembleia> criarAssembleia(@RequestBody CriarAssembleiaDTO criarAssembleiaDTO) {
-        return criarAssembleiaDTO == null ? new ResponseEntity<>(HttpStatus.BAD_REQUEST) : new ResponseEntity<>(assembleiaService.criarAssembleia(criarAssembleiaDTO), HttpStatus.CREATED);
+        return criarAssembleiaDTO == null
+                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
+                : new ResponseEntity<>(assembleiaService.criarAssembleia(criarAssembleiaDTO), HttpStatus.CREATED);
     }
 
     @Operation(description = "Busca todas as assembleias")
@@ -42,24 +44,30 @@ public class AssembleiaController {
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssembleiaDTO>> buscarTodasAssembleias() {
-        return assembleiaService.buscarTodasAssembleias().isEmpty() ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(assembleiaService.buscarTodasAssembleias(), HttpStatus.OK);
+        return assembleiaService.buscarTodasAssembleias().isEmpty()
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(assembleiaService.buscarTodasAssembleias(), HttpStatus.OK);
     }
 
     @Operation(description = "Busca uma assembleia por id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Assembleia encontrada com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar uma assembleia com o id informado")
+            @ApiResponse(responseCode = "404",
+                    description = "Não foi possível encontrar uma assembleia com o id informado")
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarAssembleiaDTO> buscarAssembleiaPorId(@PathVariable Long id) {
-        return assembleiaService.buscarAssembleiaPorId(id) == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) : new ResponseEntity<>(assembleiaService.buscarAssembleiaPorId(id), HttpStatus.OK);
+        return assembleiaService.buscarAssembleiaPorId(id) == null
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(assembleiaService.buscarAssembleiaPorId(id), HttpStatus.OK);
     }
 
     @Operation(description = "Finaliza uma assembleia")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Assembleia finalizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "A assembleia já foi finalizada"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar uma assembleia com o id informado")
+            @ApiResponse(responseCode = "404",
+                    description = "Não foi possível encontrar uma assembleia com o id informado")
     })
     @PutMapping("/{id}")
     public ResponseEntity<Assembleia> finalizarAssembleia(@PathVariable Long id) {

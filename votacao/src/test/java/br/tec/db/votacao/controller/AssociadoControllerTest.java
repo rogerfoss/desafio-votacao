@@ -58,7 +58,8 @@ public class AssociadoControllerTest {
     public void deveSalvarUmNovoAssociado() throws Exception {
         CriarAssociadoDTO criarAssociadoDTO = new CriarAssociadoDTO("João da Silva", "12345678901");
 
-        when(associadoService.salvarAssociado(criarAssociadoDTO)).thenReturn(AssociadoMapper.buildAssociado(criarAssociadoDTO));
+        when(associadoService.salvarAssociado(criarAssociadoDTO))
+                .thenReturn(AssociadoMapper.buildAssociado(criarAssociadoDTO));
 
         mockMvc.perform(post("/associados")
                         .contentType(MediaType.APPLICATION_JSON)

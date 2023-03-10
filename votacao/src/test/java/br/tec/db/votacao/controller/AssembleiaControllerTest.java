@@ -60,7 +60,8 @@ public class AssembleiaControllerTest {
 
         CriarAssembleiaDTO criarAssembleiaDTO = new CriarAssembleiaDTO(LocalDateTime.now());
 
-        when(assembleiaService.criarAssembleia(criarAssembleiaDTO)).thenReturn(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
+        when(assembleiaService.criarAssembleia(criarAssembleiaDTO))
+                .thenReturn(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
 
         mockMvc.perform(post("/assembleias")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -44,7 +44,9 @@ class AssembleiaServiceImplTest {
 
     @Test
     void deveCriarAssembleia() {
-        when(assembleiaRepository.save(any(Assembleia.class))).thenReturn(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
+        when(assembleiaRepository.save(any(Assembleia.class)))
+                .thenReturn(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
+
         Assembleia assembleia = assembleiaService.criarAssembleia(criarAssembleiaDTO);
         assertNotNull(assembleia);
         assertEquals(assembleia.getStatus(), AssembleiaStatusEnum.INICIADA);

@@ -52,7 +52,9 @@ public class PautaServiceImpl implements PautaService {
 
     @Override
     public List<BuscarPautaDTO> buscarPautasPorAssembleia(Long id) throws RuntimeException {
-        Assembleia assembleia = assembleiaRepository.findById(id).orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+        Assembleia assembleia = assembleiaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+
         return assembleia.getPautas().stream().map(BuscarPautaDTO::new).toList();
     }
 }

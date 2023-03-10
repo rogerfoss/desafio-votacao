@@ -43,7 +43,9 @@ class AssociadoServiceImplTest {
 
     @Test
     void deveSalvarUmAssociado() {
-        when(associadoRepository.save(any(Associado.class))).thenReturn(AssociadoMapper.buildAssociado(criarAssociadoDTO));
+        when(associadoRepository.save(any(Associado.class)))
+                .thenReturn(AssociadoMapper.buildAssociado(criarAssociadoDTO));
+
         Associado associado = associadoService.salvarAssociado(criarAssociadoDTO);
         assertNotNull(associado);
         assertEquals(associado.getStatus(), AssociadoStatusEnum.PODE_VOTAR);

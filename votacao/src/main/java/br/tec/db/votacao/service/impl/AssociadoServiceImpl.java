@@ -32,7 +32,9 @@ public class AssociadoServiceImpl implements AssociadoService {
 
     @Override
     public BuscarAssociadoDTO buscarAssociadoPorId(Long id) throws RuntimeException {
-        Associado associado = this.associadoRepository.findById(id).orElseThrow(() -> new RuntimeException("Associado não encontrado"));
+        Associado associado = this.associadoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Associado não encontrado"));
+
         return new BuscarAssociadoDTO(associado);
     }
 
