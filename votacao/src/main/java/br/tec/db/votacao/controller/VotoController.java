@@ -7,6 +7,7 @@ import br.tec.db.votacao.service.VotoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/votos")
+@Tag(name = "Votos")
 public class VotoController {
 
     private final VotoService votoService;
@@ -25,7 +27,7 @@ public class VotoController {
         this.votoService = votoService;
     }
 
-    @Operation(description = "Vota em uma pauta")
+    @Operation(summary = "Vota em uma pauta")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Voto realizado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Não foi possível realizar o voto")
@@ -37,7 +39,7 @@ public class VotoController {
                 : new ResponseEntity<>(votoService.votar(votarDTO), HttpStatus.CREATED);
     }
 
-    @Operation(description = "Busca um voto por id")
+    @Operation(summary = "Busca um voto por id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Voto encontrado com sucesso"),
             @ApiResponse(responseCode = "404", description = "Não foi possível encontrar um voto com o id informado")
@@ -49,7 +51,7 @@ public class VotoController {
                 : new ResponseEntity<>(votoService.buscarVotoPorId(id), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca todos os votos")
+    @Operation(summary = "Busca todos os votos")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Votos encontrados com sucesso"),
             @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhum voto")
@@ -61,7 +63,7 @@ public class VotoController {
                 : new ResponseEntity<>(votoService.buscarTodosOsVotos(), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca todos os votos de uma sessão de votação")
+    @Operation(summary = "Busca todos os votos de uma sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Votos encontrados com sucesso"),
             @ApiResponse(responseCode = "404",

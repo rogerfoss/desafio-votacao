@@ -7,6 +7,7 @@ import br.tec.db.votacao.service.AssembleiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/assembleias")
+@Tag(name = "Assembleia")
 public class AssembleiaController {
 
     private final AssembleiaService assembleiaService;
@@ -25,7 +27,7 @@ public class AssembleiaController {
         this.assembleiaService = assembleiaService;
     }
 
-    @Operation(description = "Cria uma nova assembleia")
+    @Operation(summary = "Cria uma nova assembleia")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Assembleia criada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Não foi possível criar a assembleia")
@@ -37,7 +39,7 @@ public class AssembleiaController {
                 : new ResponseEntity<>(assembleiaService.criarAssembleia(criarAssembleiaDTO), HttpStatus.CREATED);
     }
 
-    @Operation(description = "Busca todas as assembleias")
+    @Operation(summary = "Busca todas as assembleias")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Assembleias encontradas com sucesso"),
             @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhuma assembleia")
@@ -49,7 +51,7 @@ public class AssembleiaController {
                 : new ResponseEntity<>(assembleiaService.buscarTodasAssembleias(), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca uma assembleia por id")
+    @Operation(summary = "Busca uma assembleia por id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Assembleia encontrada com sucesso"),
             @ApiResponse(responseCode = "404",
@@ -62,7 +64,7 @@ public class AssembleiaController {
                 : new ResponseEntity<>(assembleiaService.buscarAssembleiaPorId(id), HttpStatus.OK);
     }
 
-    @Operation(description = "Finaliza uma assembleia")
+    @Operation(summary = "Finaliza uma assembleia")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Assembleia finalizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "A assembleia já foi finalizada"),

@@ -7,6 +7,7 @@ import br.tec.db.votacao.service.PautaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/pautas")
+@Tag(name = "Pautas")
 public class PautaController {
 
     private final PautaService pautaService;
@@ -25,7 +27,7 @@ public class PautaController {
         this.pautaService = pautaService;
     }
 
-    @Operation(description = "Cria uma nova pauta")
+    @Operation(summary = "Cria uma nova pauta")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Pauta criada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Não foi possível criar a pauta")
@@ -37,7 +39,7 @@ public class PautaController {
                 : new ResponseEntity<>(pautaService.criarPauta(criarPautaDTO), HttpStatus.CREATED);
     }
 
-    @Operation(description = "Busca uma pauta por id")
+    @Operation(summary = "Busca uma pauta por id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pauta encontrada com sucesso"),
             @ApiResponse(responseCode = "404", description = "Não foi possível encontrar uma pauta com o id informado")
@@ -49,7 +51,7 @@ public class PautaController {
                 : new ResponseEntity<>(pautaService.buscarPautaPorId(id), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca todas as pautas")
+    @Operation(summary = "Busca todas as pautas")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pautas encontradas com sucesso"),
             @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhuma pauta")
@@ -61,7 +63,7 @@ public class PautaController {
                 : new ResponseEntity<>(pautaService.buscarTodasAsPautas(), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca todas as pautas de uma assembleia")
+    @Operation(summary = "Busca todas as pautas de uma assembleia")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Pautas encontradas com sucesso"),
             @ApiResponse(responseCode = "404",

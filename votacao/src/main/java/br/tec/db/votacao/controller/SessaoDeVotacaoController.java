@@ -7,6 +7,7 @@ import br.tec.db.votacao.service.SessaoDeVotacaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/sessao-de-votacao")
+@Tag(name = "Sessão de Votação")
 public class SessaoDeVotacaoController {
 
     private final SessaoDeVotacaoService sessaoDeVotacaoService;
@@ -25,7 +27,7 @@ public class SessaoDeVotacaoController {
         this.sessaoDeVotacaoService = sessaoDeVotacaoService;
     }
 
-    @Operation(description = "Cria uma nova sessão de votação")
+    @Operation(summary = "Cria uma nova sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Sessão de votação criada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Não foi possível criar a sessão de votação")
@@ -39,7 +41,7 @@ public class SessaoDeVotacaoController {
                 sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDto), HttpStatus.CREATED);
     }
 
-    @Operation(description = "Busca todas as sessões de votação")
+    @Operation(summary = "Busca todas as sessões de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sessões de votação encontradas com sucesso"),
             @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhuma sessão de votação")
@@ -51,7 +53,7 @@ public class SessaoDeVotacaoController {
                 : new ResponseEntity<>(sessaoDeVotacaoService.buscarTodasAsSessoesDeVotacao(), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca uma sessão de votação pelo seu id")
+    @Operation(summary = "Busca uma sessão de votação pelo seu id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sessão de votação encontrada com sucesso"),
             @ApiResponse(responseCode = "404",
@@ -64,7 +66,7 @@ public class SessaoDeVotacaoController {
                 : new ResponseEntity<>(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorId(id), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca uma sessão de votação pelo id da pauta")
+    @Operation(summary = "Busca uma sessão de votação pelo id da pauta")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sessão de votação encontrada com sucesso"),
             @ApiResponse(responseCode = "404",
@@ -77,7 +79,7 @@ public class SessaoDeVotacaoController {
                 : new ResponseEntity<>(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(id), HttpStatus.OK);
     }
 
-    @Operation(description = "Encerra uma sessão de votação")
+    @Operation(summary = "Encerra uma sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Sessão de votação encerrada com sucesso"),
             @ApiResponse(responseCode = "400", description = "A sessão de votação já foi encerrada"),
@@ -90,7 +92,7 @@ public class SessaoDeVotacaoController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @Operation(description = "Calcula o resultado de uma sessão de votação")
+    @Operation(summary = "Calcula o resultado de uma sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Resultado da sessão de votação calculado com sucesso"),
             @ApiResponse(responseCode = "404",

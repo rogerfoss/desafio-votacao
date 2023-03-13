@@ -7,6 +7,7 @@ import br.tec.db.votacao.service.AssociadoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/associados")
+@Tag(name = "Associados")
 public class AssociadoController {
 
     private final AssociadoService associadoService;
@@ -25,7 +27,7 @@ public class AssociadoController {
         this.associadoService = associadoService;
     }
 
-    @Operation(description = "Salva um novo associado")
+    @Operation(summary = "Salva um novo associado")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Associado salvo com sucesso"),
             @ApiResponse(responseCode = "400", description = "Não foi possível salvar o associado")
@@ -37,7 +39,7 @@ public class AssociadoController {
                 : new ResponseEntity<>(associadoService.salvarAssociado(criarAssociadoDTO), HttpStatus.CREATED);
     }
 
-    @Operation(description = "Busca um associado por id")
+    @Operation(summary = "Busca um associado por id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Associado encontrado com sucesso"),
             @ApiResponse(responseCode = "404",
@@ -50,7 +52,7 @@ public class AssociadoController {
                 : new ResponseEntity<>(associadoService.buscarAssociadoPorId(id), HttpStatus.OK);
     }
 
-    @Operation(description = "Busca todos os associados")
+    @Operation(summary = "Busca todos os associados")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Associados encontrados com sucesso"),
             @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhum associado")
