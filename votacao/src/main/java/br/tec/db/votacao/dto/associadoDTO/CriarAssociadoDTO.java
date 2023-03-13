@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.br.CPF;
 
 public record CriarAssociadoDTO(
-        @NotBlank
+        @NotBlank(message = "Nome precisa ser informado")
         String nome,
-        @CPF
+        @CPF(message = "CPF inválido")
         String cpf
 ) {
 

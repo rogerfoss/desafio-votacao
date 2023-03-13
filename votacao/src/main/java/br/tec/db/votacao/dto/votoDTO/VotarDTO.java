@@ -4,11 +4,11 @@ import br.tec.db.votacao.enums.VotoStatusEnum;
 import jakarta.validation.constraints.NotBlank;
 
 public record VotarDTO(
-        @NotBlank
+        @NotBlank(message = "O status do voto precisa ser informado (SIM/NAO).")
         VotoStatusEnum status,
-        @NotBlank
+        @NotBlank(message = "O ID da sessão de votação precisa ser informado.")
         Long idSessaoDeVotacao,
-        @NotBlank
+        @NotBlank(message = "O ID do associado precisa ser informado.")
         Long idAssociado
 ) {
 
