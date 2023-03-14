@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 @Getter
 @SuperBuilder
 public class MethodArgumentNotValidExceptionDto {
-    private final String campo;
-    private final String mensagemCampo;
     private String titulo;
     private int status;
     private LocalDateTime dataHora;
+    private final String campo;
+    private final String mensagemCampo;
 }

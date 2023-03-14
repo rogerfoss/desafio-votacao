@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +34,8 @@ public class AssociadoController {
             @ApiResponse(responseCode = "400", description = "Não foi possível salvar o associado")
     })
     @PostMapping
-    public ResponseEntity<Associado> salvarAssociado(@RequestBody CriarAssociadoDTO criarAssociadoDTO) {
-        return criarAssociadoDTO == null
-                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
-                : new ResponseEntity<>(associadoService.salvarAssociado(criarAssociadoDTO), HttpStatus.CREATED);
+    public ResponseEntity<Associado> salvarAssociado(@RequestBody @Valid CriarAssociadoDTO criarAssociadoDTO) {
+        return new ResponseEntity<>(associadoService.salvarAssociado(criarAssociadoDTO), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Busca um associado por id")
@@ -47,9 +46,7 @@ public class AssociadoController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarAssociadoDTO> buscarAssociadoPorID(@PathVariable Long id) {
-        return associadoService.buscarAssociadoPorId(id) == null
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(associadoService.buscarAssociadoPorId(id), HttpStatus.OK);
+        return new ResponseEntity<>(associadoService.buscarAssociadoPorId(id), HttpStatus.OK);
     }
 
     @Operation(summary = "Busca todos os associados")
@@ -59,9 +56,7 @@ public class AssociadoController {
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssociadoDTO>> buscarTodosOsAssociados() {
-        return associadoService.buscarTodosOsAssociados().isEmpty()
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(associadoService.buscarTodosOsAssociados(), HttpStatus.OK);
+        return new ResponseEntity<>(associadoService.buscarTodosOsAssociados(), HttpStatus.OK);
     }
 
 }
