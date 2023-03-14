@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +34,8 @@ public class AssembleiaController {
             @ApiResponse(responseCode = "400", description = "Não foi possível criar a assembleia")
     })
     @PostMapping
-    public ResponseEntity<Assembleia> criarAssembleia(@RequestBody CriarAssembleiaDTO criarAssembleiaDTO) {
-        return criarAssembleiaDTO == null
-                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
-                : new ResponseEntity<>(assembleiaService.criarAssembleia(criarAssembleiaDTO), HttpStatus.CREATED);
+    public ResponseEntity<Assembleia> criarAssembleia(@RequestBody @Valid CriarAssembleiaDTO criarAssembleiaDTO) {
+        return new ResponseEntity<>(assembleiaService.criarAssembleia(criarAssembleiaDTO), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Busca todas as assembleias")
@@ -46,9 +45,7 @@ public class AssembleiaController {
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssembleiaDTO>> buscarTodasAssembleias() {
-        return assembleiaService.buscarTodasAssembleias().isEmpty()
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(assembleiaService.buscarTodasAssembleias(), HttpStatus.OK);
+        return new ResponseEntity<>(assembleiaService.buscarTodasAssembleias(), HttpStatus.OK);
     }
 
     @Operation(summary = "Busca uma assembleia por id")
@@ -59,9 +56,7 @@ public class AssembleiaController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarAssembleiaDTO> buscarAssembleiaPorId(@PathVariable Long id) {
-        return assembleiaService.buscarAssembleiaPorId(id) == null
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(assembleiaService.buscarAssembleiaPorId(id), HttpStatus.OK);
+        return new ResponseEntity<>(assembleiaService.buscarAssembleiaPorId(id), HttpStatus.OK);
     }
 
     @Operation(summary = "Finaliza uma assembleia")
