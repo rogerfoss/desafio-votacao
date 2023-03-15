@@ -30,8 +30,8 @@ public class AssociadoController {
 
     @Operation(summary = "Salva um novo associado")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Associado salvo com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Não foi possível salvar o associado")
+            @ApiResponse(responseCode = "201", description = "Se o associado foi salvo com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se os dados informados forem inválidos")
     })
     @PostMapping
     public ResponseEntity<Associado> salvarAssociado(@RequestBody @Valid CriarAssociadoDTO criarAssociadoDTO) {
@@ -40,9 +40,10 @@ public class AssociadoController {
 
     @Operation(summary = "Busca um associado por id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Associado encontrado com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Se o associado foi encontrado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Não foi possível encontrar um associado com o id informado")
+                    description = "Se não for encontrado um associado com o id informado")
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarAssociadoDTO> buscarAssociadoPorID(@PathVariable Long id) {
@@ -51,8 +52,8 @@ public class AssociadoController {
 
     @Operation(summary = "Busca todos os associados")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Associados encontrados com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhum associado")
+            @ApiResponse(responseCode = "200", description = "Se os associados foram encontrados com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Se nenhum associado for encontrado")
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssociadoDTO>> buscarTodosOsAssociados() {

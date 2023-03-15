@@ -31,7 +31,8 @@ public class SessaoDeVotacaoController {
     @Operation(summary = "Cria uma nova sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Se a sessão de votação for criada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Se a pauta não estiver aguardando votação"),
+            @ApiResponse(responseCode = "400",
+                    description = "Se a pauta não estiver aguardando votação ou os dados informados forem inválidos"),
             @ApiResponse(responseCode = "404", description = "Se a pauta não for encontrada")
     })
     @PostMapping
@@ -43,8 +44,8 @@ public class SessaoDeVotacaoController {
 
     @Operation(summary = "Busca todas as sessões de votação")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se foi possível encontrar alguma sessão de votação"),
-            @ApiResponse(responseCode = "404", description = "Se não foi possível encontrar nenhuma sessão de votação")
+            @ApiResponse(responseCode = "200", description = "Se as sessões de votação forem encontradas"),
+            @ApiResponse(responseCode = "404", description = "Se nenhuma sessão de votação for encontrada")
     })
     @GetMapping
     public ResponseEntity<List<BuscarSessaoDeVotacaoDTO>> buscarTodasSessoesDeVotacao() {
@@ -53,9 +54,10 @@ public class SessaoDeVotacaoController {
 
     @Operation(summary = "Busca uma sessão de votação pelo seu id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se foi possível encontrar uma sessão de votação"),
+            @ApiResponse(responseCode = "200", description = "Se a sessão de votação for encontrada"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Se não foi possível encontrar uma sessão de votação com o id informado")
+                    description = "Se não for encontrada uma sessão de votação com o id informado")
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarSessaoDeVotacaoDTO> buscarSessaoDeVotacaoPorId(@PathVariable Long id) {
@@ -64,9 +66,11 @@ public class SessaoDeVotacaoController {
 
     @Operation(summary = "Busca uma sessão de votação pelo id da pauta")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se foi possível encontrar uma sessão de votação"),
+            @ApiResponse(responseCode = "200", description = "Se as sessões de votação forem encontradas"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Se não foi possível encontrar uma sessão de votação com o id da pauta informado")
+                    description = "Se nenhuma sessão de votação for encontrada na pauta, " +
+                            "ou se a pauta não for encontrada")
     })
     @GetMapping("/pauta/{id}")
     public ResponseEntity<BuscarSessaoDeVotacaoDTO> buscarSessaoDeVotacaoPorPauta(@PathVariable Long id) {
@@ -76,9 +80,10 @@ public class SessaoDeVotacaoController {
     @Operation(summary = "Encerra uma sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Se a sessão de votação for encerrada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Se a sessão de votação já estiver encerrada"),
+            @ApiResponse(responseCode = "400",
+                    description = "Se a sessão de votação já estiver encerrada ou o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Se não foi possível encontrar uma sessão de votação com o id informado")
+                    description = "Se nenhuma sessão de votação for encontrada com o id informado")
     })
     @PutMapping("/encerrar/{id}")
     public ResponseEntity<SessaoDeVotacao> encerrarSessaoDeVotacao(@PathVariable Long id) {
@@ -90,8 +95,9 @@ public class SessaoDeVotacaoController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",
                     description = "Se o resultado da sessão de votação for calculado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Se não foi possível encontrar uma sessão de votação com o id informado")
+                    description = "Se nenhuma sessão de votação for encontrada com o id informado")
     })
     @PutMapping("/resultado/{id}")
     public ResponseEntity<SessaoDeVotacao> calcularResultadoDaSessaoDeVotacao(@PathVariable Long id) {

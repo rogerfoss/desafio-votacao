@@ -30,8 +30,8 @@ public class AssembleiaController {
 
     @Operation(summary = "Cria uma nova assembleia")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Assembleia criada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Não foi possível criar a assembleia")
+            @ApiResponse(responseCode = "201", description = "Se a assembleia for criada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se os dados informados forem inválidos")
     })
     @PostMapping
     public ResponseEntity<Assembleia> criarAssembleia(@RequestBody @Valid CriarAssembleiaDTO criarAssembleiaDTO) {
@@ -40,8 +40,8 @@ public class AssembleiaController {
 
     @Operation(summary = "Busca todas as assembleias")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Assembleias encontradas com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhuma assembleia")
+            @ApiResponse(responseCode = "200", description = "Se as assembleias forem encontradas com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Se nenhuma assembleia for encontrada")
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssembleiaDTO>> buscarTodasAssembleias() {
@@ -50,9 +50,10 @@ public class AssembleiaController {
 
     @Operation(summary = "Busca uma assembleia por id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Assembleia encontrada com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Se a assembleia for encontrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Não foi possível encontrar uma assembleia com o id informado")
+                    description = "Se não for encontrada uma assembleia com o id informado")
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarAssembleiaDTO> buscarAssembleiaPorId(@PathVariable Long id) {
@@ -61,10 +62,11 @@ public class AssembleiaController {
 
     @Operation(summary = "Finaliza uma assembleia")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Assembleia finalizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "A assembleia já foi finalizada"),
+            @ApiResponse(responseCode = "200", description = "Se a assembleia for finalizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se a assembleia já estiver finalizada " +
+                    "ou se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Não foi possível encontrar uma assembleia com o id informado")
+                    description = "Se não for encontrada uma assembleia com o id informado")
     })
     @PutMapping("/{id}")
     public ResponseEntity<Assembleia> finalizarAssembleia(@PathVariable Long id) {

@@ -30,8 +30,10 @@ public class PautaController {
 
     @Operation(summary = "Cria uma nova pauta")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Pauta criada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Não foi possível criar a pauta")
+            @ApiResponse(responseCode = "201", description = "Se a pauta for criada com sucesso"),
+            @ApiResponse(responseCode = "400",
+                    description = "Se a assembleia já estiver encerrada ou os dados informados forem inválidos"),
+            @ApiResponse(responseCode = "404", description = "Se a assembleia não for encontrada")
     })
     @PostMapping
     public ResponseEntity<Pauta> criarPauta(@RequestBody @Valid CriarPautaDTO criarPautaDTO) {
@@ -40,8 +42,10 @@ public class PautaController {
 
     @Operation(summary = "Busca uma pauta por id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pauta encontrada com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar uma pauta com o id informado")
+            @ApiResponse(responseCode = "200", description = "Se a pauta for encontrada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
+            @ApiResponse(responseCode = "404", description = "Se não for encontrada uma pauta com o id informado")
+
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarPautaDTO> buscarPautaPorID(@PathVariable Long id) {
@@ -50,8 +54,8 @@ public class PautaController {
 
     @Operation(summary = "Busca todas as pautas")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pautas encontradas com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Não foi possível encontrar nenhuma pauta")
+            @ApiResponse(responseCode = "200", description = "Se as pautas forem encontradas com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Se nenhuma pauta for encontrada")
     })
     @GetMapping
     public ResponseEntity<List<BuscarPautaDTO>> buscarTodasAsPautas() {
@@ -60,9 +64,10 @@ public class PautaController {
 
     @Operation(summary = "Busca todas as pautas de uma assembleia")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Pautas encontradas com sucesso"),
+            @ApiResponse(responseCode = "200", description = "Se as pautas forem encontradas com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Não foi possível encontrar uma pauta com o id da assembleia informado")
+                    description = "Se nenhuma pauta for encontrada para a assembleia informada")
     })
     @GetMapping("/assembleia/{id}")
     public ResponseEntity<List<BuscarPautaDTO>> buscarPautasPorAssembleia(@PathVariable Long id) {

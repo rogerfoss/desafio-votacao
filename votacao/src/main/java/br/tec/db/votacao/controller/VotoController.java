@@ -32,7 +32,8 @@ public class VotoController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Se o voto for computado com sucesso"),
             @ApiResponse(responseCode = "400",
-                    description = "Se a sessão de votação estiver encerrada ou o associado já tiver votado"),
+                    description = "Se a sessão de votação estiver encerrada, " +
+                            "se o associado já tiver votado ou se os dados informados forem inválidos"),
             @ApiResponse(responseCode = "404",
                     description = "Se a sessão de votação ou o associado não forem encontrados")
     })
@@ -44,7 +45,8 @@ public class VotoController {
     @Operation(summary = "Busca um voto por id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Se o voto for encontrado com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Se o voto não for encontrado")
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
+            @ApiResponse(responseCode = "404", description = "Se não for encontrado um voto com o id informado")
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarVotoDTO> buscarVotoPorId(@PathVariable Long id) {
@@ -64,8 +66,9 @@ public class VotoController {
     @Operation(summary = "Busca todos os votos de uma sessão de votação")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Se os votos forem encontrados com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Se nenhum voto for encontrado ou a sessão de votação não for encontrada")
+                    description = "Se nenhum voto for encontrado na sessão ou a sessão de votação não for encontrada")
     })
     @GetMapping("/sessao/{id}")
     public ResponseEntity<List<BuscarVotoDTO>> buscarVotosPorSessaoDeVotacao(@PathVariable Long id) {
