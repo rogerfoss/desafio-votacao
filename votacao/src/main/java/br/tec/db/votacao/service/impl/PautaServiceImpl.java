@@ -3,6 +3,7 @@ package br.tec.db.votacao.service.impl;
 import br.tec.db.votacao.dto.pautaDTO.BuscarPautaDTO;
 import br.tec.db.votacao.dto.pautaDTO.CriarPautaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
+import br.tec.db.votacao.exception.BadRequestException;
 import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.PautaMapper;
 import br.tec.db.votacao.model.Assembleia;
@@ -38,23 +39,23 @@ public class PautaServiceImpl implements PautaService {
             assembleia.getPautas().add(pauta);
             return pautaRepository.save(pauta);
         } else {
-            throw new RuntimeException("Não foi possível criar a pauta, assembleia já encerrada.");
+            throw new BadRequestException("Não foi possível criar a pauta, assembleia já encerrada.");
         }
     }
 
     @Override
-    public BuscarPautaDTO buscarPautaPorId(Long id) throws RuntimeException {
+    public BuscarPautaDTO buscarPautaPorId(Long id) {
         Pauta pauta = pautaRepository.findById(id).orElseThrow(() -> new NotFoundException("Pauta não encontrada"));
         return new BuscarPautaDTO(pauta);
     }
 
     @Override
-    public List<BuscarPautaDTO> buscarTodasAsPautas() throws RuntimeException {
+    public List<BuscarPautaDTO> buscarTodasAsPautas() {
         return pautaRepository.findAll().stream().map(BuscarPautaDTO::new).toList();
     }
 
     @Override
-    public List<BuscarPautaDTO> buscarPautasPorAssembleia(Long id) throws RuntimeException {
+    public List<BuscarPautaDTO> buscarPautasPorAssembleia(Long id) {
         Assembleia assembleia = assembleiaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Assembleia não encontrada"));
 

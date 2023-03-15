@@ -43,7 +43,7 @@ public class AssembleiaServiceImpl implements AssembleiaService {
     }
 
     @Override
-    public void finalizarAssembleia(Long assembleiaId) throws RuntimeException {
+    public void finalizarAssembleia(Long assembleiaId) {
         Assembleia assembleia = assembleiaRepository.findById(assembleiaId)
                 .orElseThrow(() -> new NotFoundException("Assembleia não encontrada"));
 
