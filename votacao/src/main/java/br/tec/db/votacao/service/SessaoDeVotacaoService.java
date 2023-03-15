@@ -7,16 +7,16 @@ import br.tec.db.votacao.model.SessaoDeVotacao;
 import java.util.List;
 
 public interface SessaoDeVotacaoService {
-    SessaoDeVotacao criarSessaoDeVotacao(CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO) throws RuntimeException;
+    SessaoDeVotacao criarSessaoDeVotacao(CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO);
 
-    BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id) throws RuntimeException;
+    BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id);
 
-    List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() throws RuntimeException;
+    List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao();
 
-    BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) throws RuntimeException;
+    BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id);
 
-    void encerrarSessaoDeVotacao(Long id) throws RuntimeException;
+    void encerrarSessaoDeVotacao(Long id);
 
-    void calcularResultadoDaSessaoDeVotacao(Long id) throws RuntimeException;
+    void calcularResultadoDaSessaoDeVotacao(Long id);
 
 }

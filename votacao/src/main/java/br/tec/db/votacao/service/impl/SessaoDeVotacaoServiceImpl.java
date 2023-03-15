@@ -5,6 +5,8 @@ import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.CriarSessaoDeVotacaoDTO;
 import br.tec.db.votacao.enums.PautaStatusEnum;
 import br.tec.db.votacao.enums.SessaoDeVotacaoStatusEnum;
 import br.tec.db.votacao.enums.VotoStatusEnum;
+import br.tec.db.votacao.exception.BadRequestException;
+import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.SessaoDeVotacaoMapper;
 import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.model.SessaoDeVotacao;
@@ -33,46 +35,48 @@ public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
 
     @Override
     public SessaoDeVotacao criarSessaoDeVotacao(
-            CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO) throws RuntimeException {
+            CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO) {
 
-        Pauta pauta = pautaRepository.findById(criarSessaoDeVotacaoDTO.idPauta()).orElseThrow();
+        Pauta pauta = pautaRepository.findById(criarSessaoDeVotacaoDTO.idPauta())
+                .orElseThrow(() -> new NotFoundException("Pauta não encontrada."));
+
         if (pauta.getStatus().equals(PautaStatusEnum.AGUARDANDO_VOTACAO)) {
             SessaoDeVotacao sessaoDeVotacao = SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO);
             pauta.setSessaoDeVotacao(sessaoDeVotacao);
             return sessaoDeVotacaoRepository.save(sessaoDeVotacao);
         } else {
-            throw new RuntimeException("Não foi possível criar a sessão de votação, pauta já encerrada.");
+            throw new BadRequestException("Não foi possível criar a sessão de votação, pauta já definida.");
         }
     }
 
     @Override
-    public BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id) throws RuntimeException {
+    public BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorId(Long id) {
         SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada."));
+                .orElseThrow(() -> new NotFoundException("Sessão de votação não encontrada."));
 
         return new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao);
     }
 
     @Override
-    public List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() throws RuntimeException {
+    public List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() {
         return sessaoDeVotacaoRepository.findAll().stream().map(BuscarSessaoDeVotacaoDTO::new).toList();
     }
 
     @Override
-    public BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) throws RuntimeException {
+    public BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) {
         Pauta pauta = pautaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sem sessão na pauta ou pauta não encontrada."));
+                .orElseThrow(() -> new NotFoundException("Sem sessão na pauta ou pauta não encontrada."));
 
         return new BuscarSessaoDeVotacaoDTO(pauta.getSessaoDeVotacao());
     }
 
     @Override
-    public void encerrarSessaoDeVotacao(Long id) throws RuntimeException {
+    public void encerrarSessaoDeVotacao(Long id) {
         SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada."));
+                .orElseThrow(() -> new NotFoundException("Sessão de votação não encontrada."));
 
         if (sessaoDeVotacao.getStatus().equals(SessaoDeVotacaoStatusEnum.ENCERRADA)) {
-            throw new RuntimeException("Sessão de votação já encerrada.");
+            throw new BadRequestException("Sessão de votação já encerrada.");
         } else {
             sessaoDeVotacao.setFim(LocalDateTime.now());
             sessaoDeVotacao.setStatus(SessaoDeVotacaoStatusEnum.ENCERRADA);
@@ -81,9 +85,9 @@ public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
     }
 
     @Override
-    public void calcularResultadoDaSessaoDeVotacao(Long id) throws RuntimeException {
+    public void calcularResultadoDaSessaoDeVotacao(Long id) {
         SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada."));
+                .orElseThrow(() -> new NotFoundException("Sessão de votação não encontrada."));
 
         long votosSim = sessaoDeVotacao.getVotos().stream()
                 .filter(voto -> voto.getStatus().equals(VotoStatusEnum.SIM)).count();
