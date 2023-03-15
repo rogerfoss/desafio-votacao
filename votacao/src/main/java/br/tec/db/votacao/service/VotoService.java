@@ -7,11 +7,11 @@ import br.tec.db.votacao.model.Voto;
 import java.util.List;
 
 public interface VotoService {
-    Voto votar(VotarDTO votoDTO) throws RuntimeException;
+    Voto votar(VotarDTO votoDTO);
 
-    BuscarVotoDTO buscarVotoPorId(Long id) throws RuntimeException;
+    BuscarVotoDTO buscarVotoPorId(Long id);
 
-    List<BuscarVotoDTO> buscarTodosOsVotos() throws RuntimeException;
+    List<BuscarVotoDTO> buscarTodosOsVotos();
 
-    List<BuscarVotoDTO> buscarVotosPorSessaoDeVotacao(Long id) throws RuntimeException;
+    List<BuscarVotoDTO> buscarVotosPorSessaoDeVotacao(Long id);
 }

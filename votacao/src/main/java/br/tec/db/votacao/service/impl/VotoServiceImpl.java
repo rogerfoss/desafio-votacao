@@ -3,6 +3,8 @@ package br.tec.db.votacao.service.impl;
 import br.tec.db.votacao.dto.votoDTO.BuscarVotoDTO;
 import br.tec.db.votacao.dto.votoDTO.VotarDTO;
 import br.tec.db.votacao.enums.SessaoDeVotacaoStatusEnum;
+import br.tec.db.votacao.exception.BadRequestException;
+import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.VotoMapper;
 import br.tec.db.votacao.model.Associado;
 import br.tec.db.votacao.model.SessaoDeVotacao;
@@ -38,14 +40,16 @@ public class VotoServiceImpl implements VotoService {
     @Override
     public Voto votar(VotarDTO votarDTO) {
         SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(votarDTO.idSessaoDeVotacao())
-                .orElseThrow();
+                .orElseThrow(() -> new NotFoundException("Sessão de votação não encontrada"));
 
-        Associado associado = associadoRepository.findById(votarDTO.idAssociado()).orElseThrow();
+        Associado associado = associadoRepository.findById(votarDTO.idAssociado())
+                .orElseThrow(() -> new NotFoundException("Associado não encontrado"));
+
         if (sessaoDeVotacao.getStatus().equals(SessaoDeVotacaoStatusEnum.ENCERRADA)) {
-            throw new RuntimeException("Sessão de votação encerrada");
+            throw new BadRequestException("Sessão de votação encerrada");
         } else if (sessaoDeVotacao.getVotos().stream()
                 .anyMatch(voto -> voto.getAssociado().getId().equals(associado.getId()))) {
-            throw new RuntimeException("Associado já votou nesta sessão");
+            throw new BadRequestException("Associado já votou nesta sessão");
         } else {
             Voto voto = VotoMapper.buildVoto(votarDTO);
             sessaoDeVotacao.getVotos().add(voto);
@@ -56,7 +60,7 @@ public class VotoServiceImpl implements VotoService {
 
     @Override
     public BuscarVotoDTO buscarVotoPorId(Long id) {
-        Voto voto = votoRepository.findById(id).orElseThrow(() -> new RuntimeException("Voto não encontrado"));
+        Voto voto = votoRepository.findById(id).orElseThrow(() -> new NotFoundException("Voto não encontrado"));
         return new BuscarVotoDTO(voto);
     }
 
@@ -68,7 +72,7 @@ public class VotoServiceImpl implements VotoService {
     @Override
     public List<BuscarVotoDTO> buscarVotosPorSessaoDeVotacao(Long id) {
         SessaoDeVotacao sessaoDeVotacao = sessaoDeVotacaoRepository.findById(id).
-                orElseThrow(() -> new RuntimeException("Sessão de votação não encontrada"));
+                orElseThrow(() -> new NotFoundException("Sessão de votação não encontrada"));
         return sessaoDeVotacao.getVotos().stream().map(BuscarVotoDTO::new).collect(Collectors.toList());
     }
 }
