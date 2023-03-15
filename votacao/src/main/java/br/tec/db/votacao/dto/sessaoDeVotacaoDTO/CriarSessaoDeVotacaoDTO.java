@@ -1,13 +1,13 @@
 package br.tec.db.votacao.dto.sessaoDeVotacaoDTO;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
 public record CriarSessaoDeVotacaoDTO(
-        @NotBlank(message = "A data e hora de início da sessão de votação precisa ser informada.")
+        @NotNull(message = "A data e hora de início da sessão de votação precisa ser informada.")
         LocalDateTime inicio,
-        @NotBlank(message = "O ID da pauta precisa ser informado.")
+        @NotNull(message = "O ID da pauta precisa ser informado.")
         Long idPauta
 ) {
 
