@@ -3,6 +3,7 @@ package br.tec.db.votacao.service.impl;
 import br.tec.db.votacao.dto.pautaDTO.BuscarPautaDTO;
 import br.tec.db.votacao.dto.pautaDTO.CriarPautaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
+import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.PautaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.model.Pauta;
@@ -28,8 +29,10 @@ public class PautaServiceImpl implements PautaService {
     }
 
     @Override
-    public Pauta criarPauta(CriarPautaDTO criarPautaDTO) throws RuntimeException {
-        Assembleia assembleia = assembleiaRepository.findById(criarPautaDTO.idAssembleia()).orElseThrow();
+    public Pauta criarPauta(CriarPautaDTO criarPautaDTO) {
+        Assembleia assembleia = assembleiaRepository.findById(criarPautaDTO.idAssembleia())
+                .orElseThrow(() -> new NotFoundException("Assembleia não encontrada"));
+
         if (assembleia.getStatus().equals(AssembleiaStatusEnum.INICIADA)) {
             Pauta pauta = PautaMapper.buildPauta(criarPautaDTO);
             assembleia.getPautas().add(pauta);
@@ -41,7 +44,7 @@ public class PautaServiceImpl implements PautaService {
 
     @Override
     public BuscarPautaDTO buscarPautaPorId(Long id) throws RuntimeException {
-        Pauta pauta = pautaRepository.findById(id).orElseThrow(() -> new RuntimeException("Pauta não encontrada"));
+        Pauta pauta = pautaRepository.findById(id).orElseThrow(() -> new NotFoundException("Pauta não encontrada"));
         return new BuscarPautaDTO(pauta);
     }
 
@@ -53,7 +56,7 @@ public class PautaServiceImpl implements PautaService {
     @Override
     public List<BuscarPautaDTO> buscarPautasPorAssembleia(Long id) throws RuntimeException {
         Assembleia assembleia = assembleiaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Assembleia não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Assembleia não encontrada"));
 
         return assembleia.getPautas().stream().map(BuscarPautaDTO::new).toList();
     }

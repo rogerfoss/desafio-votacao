@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +34,8 @@ public class PautaController {
             @ApiResponse(responseCode = "400", description = "Não foi possível criar a pauta")
     })
     @PostMapping
-    public ResponseEntity<Pauta> criarPauta(@RequestBody CriarPautaDTO criarPautaDTO) {
-        return criarPautaDTO == null
-                ? new ResponseEntity<>(HttpStatus.BAD_REQUEST)
-                : new ResponseEntity<>(pautaService.criarPauta(criarPautaDTO), HttpStatus.CREATED);
+    public ResponseEntity<Pauta> criarPauta(@RequestBody @Valid CriarPautaDTO criarPautaDTO) {
+        return new ResponseEntity<>(pautaService.criarPauta(criarPautaDTO), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Busca uma pauta por id")
@@ -46,9 +45,7 @@ public class PautaController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<BuscarPautaDTO> buscarPautaPorID(@PathVariable Long id) {
-        return pautaService.buscarPautaPorId(id) == null
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(pautaService.buscarPautaPorId(id), HttpStatus.OK);
+        return new ResponseEntity<>(pautaService.buscarPautaPorId(id), HttpStatus.OK);
     }
 
     @Operation(summary = "Busca todas as pautas")
@@ -58,9 +55,7 @@ public class PautaController {
     })
     @GetMapping
     public ResponseEntity<List<BuscarPautaDTO>> buscarTodasAsPautas() {
-        return pautaService.buscarTodasAsPautas().isEmpty()
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(pautaService.buscarTodasAsPautas(), HttpStatus.OK);
+        return new ResponseEntity<>(pautaService.buscarTodasAsPautas(), HttpStatus.OK);
     }
 
     @Operation(summary = "Busca todas as pautas de uma assembleia")
@@ -71,8 +66,6 @@ public class PautaController {
     })
     @GetMapping("/assembleia/{id}")
     public ResponseEntity<List<BuscarPautaDTO>> buscarPautasPorAssembleia(@PathVariable Long id) {
-        return pautaService.buscarPautasPorAssembleia(id).isEmpty()
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(pautaService.buscarPautasPorAssembleia(id), HttpStatus.OK);
+        return new ResponseEntity<>(pautaService.buscarPautasPorAssembleia(id), HttpStatus.OK);
     }
 }
