@@ -1,28 +1,18 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.associadoDTO.BuscarAssociadoDTO;
-import br.tec.db.votacao.dto.associadoDTO.CriarAssociadoDTO;
-import br.tec.db.votacao.enums.AssociadoStatusEnum;
-import br.tec.db.votacao.mapper.AssociadoMapper;
-import br.tec.db.votacao.model.Associado;
-import br.tec.db.votacao.service.AssociadoService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static br.tec.db.votacao.SqlProvider.insertAssociado;
+import static br.tec.db.votacao.SqlProvider.resetarDB;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -35,107 +25,96 @@ public class AssociadoControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private JacksonTester<CriarAssociadoDTO> criarAssociadoDtoJson;
-
-    @MockBean
-    private AssociadoService associadoService;
-
-    private List<BuscarAssociadoDTO> associados;
-    private Associado associado1, associado2;
-
-    @BeforeEach
-    public void inicializar() {
-        associado1 = new Associado(1L, "João da Silva", "12345678901", AssociadoStatusEnum.PODE_VOTAR);
-        associado2 = new Associado(2L, "Maria da Silva", "12345678902", AssociadoStatusEnum.PODE_VOTAR);
-
-        associados = new ArrayList<>();
-        associados.add(new BuscarAssociadoDTO(associado1));
-        associados.add(new BuscarAssociadoDTO(associado2));
-    }
+    private final String URL = "/associados";
 
     @Test
-    public void deveSalvarUmNovoAssociado() throws Exception {
-        CriarAssociadoDTO criarAssociadoDTO = new CriarAssociadoDTO("João da Silva", "12345678901");
+    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    public void deveSalvarAssociado() throws Exception {
 
-        when(associadoService.salvarAssociado(criarAssociadoDTO))
-                .thenReturn(AssociadoMapper.buildAssociado(criarAssociadoDTO));
-
-        mockMvc.perform(post("/associados")
+        mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(criarAssociadoDtoJson.write(criarAssociadoDTO).getJson()))
+                        .content("{\"nome\": \"João da Silva\",\"cpf\": \"02996891074\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("PODE_VOTAR"));
     }
 
     @Test
-    public void deveImpedirSalvarAssociadoComCPFInvalido() throws Exception {
-        CriarAssociadoDTO criarAssociadoDTO = new CriarAssociadoDTO("João da Silva", "123456789012");
-
-        when(associadoService.salvarAssociado(criarAssociadoDTO)).thenThrow(new RuntimeException("CPF inválido"));
-
-        mockMvc.perform(post("/associados")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void deveRetornarBadRequestAoSalvarAssociadoSemNome() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"cpf\": \"02996891074\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("Nome precisa ser informado"));
     }
 
     @Test
-    public void deveRetornarBadRequestAoSalvarAssociadoComDTONull() throws Exception {
-        when(associadoService.salvarAssociado(any(CriarAssociadoDTO.class))).thenReturn(null);
-
-        mockMvc.perform(post("/associados")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void deveRetornarBadRequestAoSalvarAssociadoSemCPF() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\": \"João da Silva\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("CPF precisa ser informado"));
     }
 
     @Test
-    public void devebuscarAssociadoPorID() throws Exception {
+    public void deveRetornarBadRequestAoSalvarAssociadoComCPFInvalido() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\": \"João da Silva\",\"cpf\": \"0299689107\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("CPF inválido"));
+    }
 
-        when(associadoService.buscarAssociadoPorId(1L)).thenReturn(new BuscarAssociadoDTO(associado1));
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssociado),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveBuscarTodosOsAssociados() throws Exception {
 
-        mockMvc.perform(get("/associados/1")
+        mockMvc.perform(get(URL)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[1].id").value(2));
     }
 
     @Test
-    public void deveRetornarNotFoundAoBuscarAssociadoPorIDInexistente() throws Exception {
-        mockMvc.perform(get("/associados/99")
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssociado),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveBuscarAssociadoPorID() throws Exception {
+
+        mockMvc.perform(get(URL + "/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.nome").value("João Ferreira"));
     }
 
     @Test
     public void deveRetornarBadRequestAoBuscarAssociadoPorIdInvalido() throws Exception {
-
-        mockMvc.perform(get("/associados/abc")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL + "/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
     }
 
     @Test
-    public void deveBuscarTodosOsAssociados() throws Exception {
-
-        when(associadoService.buscarTodosOsAssociados()).thenReturn(associados);
-
-        mockMvc.perform(get("/associados")
-                        .contentType(MediaType.APPLICATION_JSON))
+    public void deveRetornarNotFoundAoBuscarAssociadoPorIDInexistente() throws Exception {
+        mockMvc.perform(get(URL + "/999"))
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarTodosOsAssociadosVazio() throws Exception {
-        List<BuscarAssociadoDTO> associados = new ArrayList<>();
-
-        when(associadoService.buscarTodosOsAssociados()).thenReturn(associados);
-
-        mockMvc.perform(get("/associados")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(jsonPath("$.mensagem").value("Associado não encontrado"));
     }
 
 }

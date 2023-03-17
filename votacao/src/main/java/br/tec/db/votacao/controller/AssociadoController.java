@@ -52,8 +52,7 @@ public class AssociadoController {
 
     @Operation(summary = "Busca todos os associados")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se os associados foram encontrados com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Se nenhum associado for encontrado")
+            @ApiResponse(responseCode = "200", description = "Se os associados foram encontrados com sucesso")
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssociadoDTO>> buscarTodosOsAssociados() {
