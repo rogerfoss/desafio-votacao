@@ -40,8 +40,7 @@ public class AssembleiaController {
 
     @Operation(summary = "Busca todas as assembleias")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se as assembleias forem encontradas com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Se nenhuma assembleia for encontrada")
+            @ApiResponse(responseCode = "200", description = "Se as assembleias forem encontradas com sucesso")
     })
     @GetMapping
     public ResponseEntity<List<BuscarAssembleiaDTO>> buscarTodasAssembleias() {

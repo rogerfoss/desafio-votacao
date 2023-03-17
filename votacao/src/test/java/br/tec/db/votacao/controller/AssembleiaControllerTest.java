@@ -1,29 +1,18 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.assembleiaDTO.BuscarAssembleiaDTO;
-import br.tec.db.votacao.dto.assembleiaDTO.CriarAssembleiaDTO;
-import br.tec.db.votacao.enums.AssembleiaStatusEnum;
-import br.tec.db.votacao.mapper.AssembleiaMapper;
-import br.tec.db.votacao.model.Assembleia;
-import br.tec.db.votacao.service.AssembleiaService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import static br.tec.db.votacao.SqlProvider.insertAssembleia;
+import static br.tec.db.votacao.SqlProvider.resetarDB;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -35,109 +24,129 @@ public class AssembleiaControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private JacksonTester<CriarAssembleiaDTO> CriarAssembleiaDtoJson;
-
-    @MockBean
-    private AssembleiaService assembleiaService;
-
-    private List<BuscarAssembleiaDTO> assembleias;
-    private Assembleia assembleia1, assembleia2;
-
-    @BeforeEach
-    public void inicializar() {
-        assembleia1 = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
-        assembleia2 = new Assembleia(2L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, null);
-
-        assembleias = new ArrayList<>();
-        assembleias.add(new BuscarAssembleiaDTO(assembleia1));
-        assembleias.add(new BuscarAssembleiaDTO(assembleia2));
-    }
-
+    private final String URL = "/assembleias";
 
     @Test
+    @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
     public void deveCriarAssembleia() throws Exception {
 
-        CriarAssembleiaDTO criarAssembleiaDTO = new CriarAssembleiaDTO(LocalDateTime.now());
-
-        when(assembleiaService.criarAssembleia(criarAssembleiaDTO))
-                .thenReturn(AssembleiaMapper.buildAssembleia(criarAssembleiaDTO));
-
-        mockMvc.perform(post("/assembleias")
+        mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(CriarAssembleiaDtoJson.write(criarAssembleiaDTO).getJson()))
+                        .content("{\"inicio\": \"2023-02-27T08:00:00\"}"))
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("INICIADA"));
     }
 
     @Test
-    public void deveRetornarBadRequestAoCriarAssembleiaComDTONull() throws Exception {
-        when(assembleiaService.criarAssembleia(any(CriarAssembleiaDTO.class))).thenReturn(null);
-
-        mockMvc.perform(post("/assembleias")
+    public void deveRetornarBadRequestAoCriarAssembleiaSemInformarInicio() throws Exception {
+        mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(""))
-                .andExpect(status().isBadRequest());
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("O início da assembleia precisa ser informado."));
     }
 
     @Test
+    public void deveRetornarBadRequestAoCriarAssembleiaComInicioInvalido() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"inicio\": \"aaaa\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to read request"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveBuscarTodasAssembleias() throws Exception {
-
-        when(assembleiaService.buscarTodasAssembleias()).thenReturn(assembleias);
-
-        mockMvc.perform(get("/assembleias")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[1].id").value(2));
     }
 
-    @Test
-    public void deveRetornarNotFoundSeNaoHouverAssembleias() throws Exception {
-        List<BuscarAssembleiaDTO> assembleias = new ArrayList<>();
-
-        when(assembleiaService.buscarTodasAssembleias()).thenReturn(assembleias);
-
-        mockMvc.perform(get("/assembleias")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveBuscarAssembleiaPorId() throws Exception {
-        when(assembleiaService.buscarAssembleiaPorId(1L)).thenReturn(new BuscarAssembleiaDTO(assembleia1));
 
-        mockMvc.perform(get("/assembleias/1")
+        mockMvc.perform(get(URL + "/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarAssembleiaPorIdInexistente() throws Exception {
-        mockMvc.perform(get("/assembleias/3")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarAssembleiaPorIdNegativo() throws Exception {
-        mockMvc.perform(get("/assembleias/-1"))
-                .andExpect(status().isNotFound());
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.inicio").value("2023-02-27T08:00:00"))
+                .andExpect(jsonPath("$.status").value("ENCERRADA"));
     }
 
     @Test
     public void deveRetornarBadRequestAoBuscarAssembleiaPorIdInvalido() throws Exception {
-        mockMvc.perform(get("/assembleias/abc"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL + "/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
     }
 
     @Test
+    public void deveRetornarNotFoundAoBuscarAssembleiaPorIdInexistente() throws Exception {
+        mockMvc.perform(get(URL + "/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Assembleia não encontrada"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveFinalizarAssembleia() throws Exception {
-        mockMvc.perform(put("/assembleias/1")
+        mockMvc.perform(put(URL + "/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarBadRequestAoFinalizarAssembleiaJaFinalizada() throws Exception {
+        mockMvc.perform(put(URL + "/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Assembleia já finalizada"));
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoFinalizarAssembleiaComIdInvalido() throws Exception {
+        mockMvc.perform(put(URL + "/abc")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
+    }
+
+    @Test
+    public void deveRetornarNotFoundAoFinalizarAssembleiaInexistente() throws Exception {
+        mockMvc.perform(put(URL + "/999")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Assembleia não encontrada"));
+    }
+
 
 }
