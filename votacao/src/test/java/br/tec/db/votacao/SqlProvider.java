@@ -12,4 +12,6 @@ public class SqlProvider {
 
     public static final String insertSessaoDeVotacao = "/insertSessaoDeVotacao.sql";
 
+    public static final String insertVoto = "/insertVoto.sql";
+
 }

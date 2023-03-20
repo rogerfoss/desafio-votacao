@@ -1,173 +1,239 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.votoDTO.BuscarVotoDTO;
-import br.tec.db.votacao.dto.votoDTO.VotarDTO;
-import br.tec.db.votacao.enums.VotoStatusEnum;
-import br.tec.db.votacao.mapper.VotoMapper;
-import br.tec.db.votacao.model.Associado;
-import br.tec.db.votacao.model.SessaoDeVotacao;
-import br.tec.db.votacao.model.Voto;
-import br.tec.db.votacao.service.VotoService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static br.tec.db.votacao.SqlProvider.*;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureJsonTesters
 class VotoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private JacksonTester<VotarDTO> votarDtoJson;
-
-    @MockBean
-    private VotoService votoService;
-
-    private List<BuscarVotoDTO> votos;
-    private Voto voto1, voto2;
-
-    @BeforeEach
-    public void inicializar() {
-        voto1 = new Voto(1L, VotoStatusEnum.SIM, new SessaoDeVotacao(), new Associado());
-        voto2 = new Voto(2L, VotoStatusEnum.NAO, new SessaoDeVotacao(), new Associado());
-
-        votos = new ArrayList<>();
-        votos.add(new BuscarVotoDTO(voto1));
-        votos.add(new BuscarVotoDTO(voto2));
-    }
+    private final String URL = "/votos";
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveVotarEmUmaSessao() throws Exception {
-        VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 1L);
-        when(votoService.votar(votarDTO)).thenReturn(VotoMapper.buildVoto(votarDTO));
-
-        mockMvc.perform(post("/votos")
+        mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(votarDtoJson.write(votarDTO).getJson()))
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"1\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("NAO"))
+                .andExpect(jsonPath("$.sessaoDeVotacao.id").value(1))
+                .andExpect(jsonPath("$.associado.id").value(1));
     }
 
     @Test
-    public void deveRetornarBadRequestAoVotarEmSessaoInexistente() throws Exception {
-        VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 99L, 1L);
-
-        when(votoService.votar(votarDTO)).thenThrow(new RuntimeException("Sessão de votação inexistente"));
-
-        mockMvc.perform(post("/votos")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void deveRetornarBadRequestAoVotarEmSessaoEncerrada() throws Exception {
-        VotarDTO votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 1L);
-
-        when(votoService.votar(votarDTO)).thenThrow(new RuntimeException("Sessão de votação encerrada"));
-
-        mockMvc.perform(post("/votos")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void deveBuscarVotoPorId() throws Exception {
-        when(votoService.buscarVotoPorId(1L)).thenReturn(new BuscarVotoDTO(voto1));
-
-        mockMvc.perform(get("/votos/1"))
+    public void deveRetornarBadRequestAoVotarSemInformarStatus() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idSessaoDeVotacao\":\"1\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("O status do voto precisa ser informado (SIM/NAO)"));
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoVotarComStatusInvalido() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"SIMM\",\"idSessaoDeVotacao\":\"1\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to read request"));
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoVotarSemInformarIdSessaoDeVotacao() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("O ID da sessão de votação precisa ser informado"));
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoVotarComIdSessaoDeVotacaoInvalido() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"abc\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to read request"));
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoVotarSemInformarIdAssociado() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("O ID do associado precisa ser informado"));
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoVotarComIdAssociadoInvalido() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"1\",\"idAssociado\":\"abc\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to read request"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarBadRequestAoVotarSeSessaoJaEncerrada() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"2\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação encerrada"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarBadRequestAoVotarSeAssociadoJaVotou() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"1\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Associado já votou nesta sessão"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoVotarEmSessaoInexistente() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"99\",\"idAssociado\":\"1\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoVotarComAssociadoInexistente() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"1\",\"idAssociado\":\"99\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Associado não encontrado"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveBuscarTodosOsVotos() throws Exception {
+        mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(4)));
     }
 
-    @Disabled
     @Test
-    public void deveRetornarNotFoundAoBuscarVotoPorIdInexistente() throws Exception {
-
-        mockMvc.perform(get("/votos/99"))
-                .andExpect(status().isNotFound());
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveBuscarVotoPorId() throws Exception {
+        mockMvc.perform(get(URL + "/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("SIM"));
     }
 
     @Test
     public void deveRetornarBadRequestAoBuscarVotoPorIdInvalido() throws Exception {
-
-        mockMvc.perform(get("/votos/abc"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL + "/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
     }
 
     @Test
-    public void deveBuscarTodosOsVotos() throws Exception {
-
-        when(votoService.buscarTodosOsVotos()).thenReturn(votos);
-
-        mockMvc.perform(get("/votos"))
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoBuscarVotoPorIdInexistente() throws Exception {
+        mockMvc.perform(get(URL + "/999"))
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.mensagem").value("Voto não encontrado"));
     }
 
     @Test
-    public void deveRetornarNotFoundAoBuscarTodosOsVotosVazio() throws Exception {
-        List<BuscarVotoDTO> votos = new ArrayList<>();
-        when(votoService.buscarTodosOsVotos()).thenReturn(votos);
-
-        mockMvc.perform(get("/votos"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveBuscarVotosPorSessaoDeVotacao() throws Exception {
-
-        when(votoService.buscarVotosPorSessaoDeVotacao(any(Long.class))).thenReturn(votos);
-
         mockMvc.perform(get("/votos/sessao/1"))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(2)));
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarVotosPorSessaoDeVotacaoVazio() throws Exception {
-        List<BuscarVotoDTO> votos = new ArrayList<>();
-        when(votoService.buscarVotosPorSessaoDeVotacao(any(Long.class))).thenReturn(votos);
-
-        mockMvc.perform(get("/votos/sessao/1"))
-                .andExpect(status().isNotFound());
     }
 
     @Test
     public void deveRetornarBadRequestAoBuscarVotosPorSessaoDeVotacaoComIdInvalido() throws Exception {
-
         mockMvc.perform(get("/votos/sessao/abc"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
     }
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertVoto),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveRetornarNotFoundAoBuscarVotosPorSessaoDeVotacaoComIdInexistente() throws Exception {
-
-        mockMvc.perform(get("/votos/sessao/99"))
-                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/votos/sessao/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada"));
     }
+
 
 }

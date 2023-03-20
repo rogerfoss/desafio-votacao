@@ -55,8 +55,7 @@ public class VotoController {
 
     @Operation(summary = "Busca todos os votos")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se os votos forem encontrados com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Se nenhum voto for encontrado")
+            @ApiResponse(responseCode = "200", description = "Se os votos forem encontrados com sucesso")
     })
     @GetMapping
     public ResponseEntity<List<BuscarVotoDTO>> buscarTodosOsVotos() {
@@ -68,7 +67,7 @@ public class VotoController {
             @ApiResponse(responseCode = "200", description = "Se os votos forem encontrados com sucesso"),
             @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Se nenhum voto for encontrado na sessão ou a sessão de votação não for encontrada")
+                    description = "Se não for encontrada uma sessão de votação com o id informado")
     })
     @GetMapping("/sessao/{id}")
     public ResponseEntity<List<BuscarVotoDTO>> buscarVotosPorSessaoDeVotacao(@PathVariable Long id) {
