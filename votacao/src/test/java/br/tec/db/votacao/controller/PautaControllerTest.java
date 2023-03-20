@@ -1,188 +1,185 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.pautaDTO.BuscarPautaDTO;
-import br.tec.db.votacao.dto.pautaDTO.CriarPautaDTO;
-import br.tec.db.votacao.enums.PautaStatusEnum;
-import br.tec.db.votacao.mapper.PautaMapper;
-import br.tec.db.votacao.model.Assembleia;
-import br.tec.db.votacao.model.Pauta;
-import br.tec.db.votacao.service.PautaService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static br.tec.db.votacao.SqlProvider.*;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureJsonTesters
 public class PautaControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private JacksonTester<CriarPautaDTO> criarPautaDtoJson;
-
-    @MockBean
-    private PautaService pautaService;
-
-    private List<BuscarPautaDTO> pautas;
-    private Pauta pauta1, pauta2;
-
-    @BeforeEach
-    public void inicializar() {
-        pauta1 = new Pauta(1L, "pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(), null);
-        pauta2 = new Pauta(2L, "pauta 2", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(), null);
-
-        pautas = new ArrayList<>();
-        pautas.add(new BuscarPautaDTO(pauta1));
-        pautas.add(new BuscarPautaDTO(pauta2));
-    }
+    private final String URL = "/pautas";
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveCriarUmaPautaEmUmaAssembleia() throws Exception {
-        CriarPautaDTO criarPautaDTO = new CriarPautaDTO("pauta 1", 1L);
-        when(pautaService.criarPauta(criarPautaDTO)).thenReturn(PautaMapper.buildPauta(criarPautaDTO));
 
-        mockMvc.perform(post("/pautas")
+        mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(criarPautaDtoJson.write(criarPautaDTO).getJson()))
+                        .content("{\"titulo\": \"pauta 1 teste\",\"idAssembleia\": \"1\"}"))
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
-    }
-
-    @Disabled
-    @Test
-    public void deveRetornarBadRequestAoCriarPautaEmAssembleiaInexistente() throws Exception {
-        CriarPautaDTO criarPautaDTO = new CriarPautaDTO("pauta 1", 10L);
-        when(pautaService.criarPauta(any(CriarPautaDTO.class)))
-                .thenThrow(new RuntimeException("Assembleia não encontrada"));
-
-        mockMvc.perform(post("/pautas")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(jsonPath("$.titulo").value("pauta 1 teste"))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("AGUARDANDO_VOTACAO"));
     }
 
     @Test
-    public void deveRetornarBadRequestAoCriarPautaComDTONull() throws Exception {
-        when(pautaService.criarPauta(any(CriarPautaDTO.class))).thenReturn(null);
-
-        mockMvc.perform(post("/pautas")
+    public void deveRetornarBadRequestAoCriarPautaSemInformarTitulo() throws Exception {
+        mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(""))
-                .andExpect(status().isBadRequest());
+                        .content("{\"idAssembleia\": \"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("O título da pauta precisa ser informado."));
     }
 
     @Test
-    public void deveRetornarBadRequestAoCriarPautaEmAssembleiaEncerrada() throws Exception {
-        CriarPautaDTO pautaDTO = new CriarPautaDTO("pauta 1", 1L);
-        when(pautaService.criarPauta(any(CriarPautaDTO.class)))
-                .thenThrow(new RuntimeException("Assembleia já encerrada"));
-
-        mockMvc.perform(post("/pautas")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void deveRetornarBadRequestAoCriarPautaSemInformarIdAssembleia() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"titulo\": \"pauta 1 teste\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("O ID da assembleia precisa ser informado."));
     }
 
     @Test
+    public void deveRetornarBadRequestAoCriarPautaComIdAssembleiaInvalido() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"titulo\": \"pauta 1 teste\",\"idAssembleia\": \"abc\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to read request"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarBadRequestAoCriarPautaEmAssembleiaJaEncerrada() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"titulo\": \"pauta 1 teste\",\"idAssembleia\": \"2\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Não foi possível criar a pauta, assembleia já encerrada."));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoCriarPautaComIdAssembleiaInexistente() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"titulo\": \"pauta 1 teste\",\"idAssembleia\": \"999\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Assembleia não encontrada"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveBuscarTodasAsPautas() throws Exception {
+        mockMvc.perform(get(URL))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[1].id").value(2));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveBuscarPautaPorId() throws Exception {
-
-        when(pautaService.buscarPautaPorId(1L)).thenReturn(new BuscarPautaDTO(pauta1));
-
-        mockMvc.perform(get("/pautas/1")
+        mockMvc.perform(get(URL + "/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarPautaPorIdInexistente() throws Exception {
-
-        mockMvc.perform(get("/pautas/10"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarPautaPorIdNegativo() throws Exception {
-
-        mockMvc.perform(get("/pautas/-1"))
-                .andExpect(status().isNotFound());
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.titulo").value("pauta 1"))
+                .andExpect(jsonPath("$.status").value("AGUARDANDO_VOTACAO"));
     }
 
     @Test
     public void deveRetornarBadRequestAoBuscarPautaPorIdInvalido() throws Exception {
-
-        mockMvc.perform(get("/pautas/abc"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL + "/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
     }
 
     @Test
-    public void deveBuscarTodasAsPautas() throws Exception {
-
-        when(pautaService.buscarTodasAsPautas()).thenReturn(pautas);
-
-        mockMvc.perform(get("/pautas")
-                        .contentType(MediaType.APPLICATION_JSON))
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoBuscarPautaPorIdInexistente() throws Exception {
+        mockMvc.perform(get(URL + "/999"))
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.mensagem").value("Pauta não encontrada"));
     }
 
     @Test
-    public void deveRetornarNotFoundAoBuscarTodasAsPautasVazio() throws Exception {
-        List<BuscarPautaDTO> pautas = new ArrayList<>();
-        when(pautaService.buscarTodasAsPautas()).thenReturn(pautas);
-
-        mockMvc.perform(get("/pautas"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveBuscarPautasPorAssembleia() throws Exception {
-
-        when(pautaService.buscarPautasPorAssembleia(any(Long.class))).thenReturn(pautas);
-
-        mockMvc.perform(get("/pautas/assembleia/1"))
+        mockMvc.perform(get(URL + "/assembleia/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarPautasPorAssembleiaVazio() throws Exception {
-        List<BuscarPautaDTO> pautas = new ArrayList<>();
-        when(pautaService.buscarPautasPorAssembleia(any(Long.class))).thenReturn(pautas);
-
-        mockMvc.perform(get("/pautas/assembleia/1"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void deveRetornarNotFoundAoBuscarPautasPorAssembleiaInexistente() throws Exception {
-        mockMvc.perform(get("/pautas/assembleia/10"))
-                .andExpect(status().isNotFound());
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[1].id").value(2));
     }
 
     @Test
     public void deveRetornarBadRequestAoBuscarPautasPorAssembleiaInvalido() throws Exception {
-        mockMvc.perform(get("/pautas/assembleia/abc"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL + "/assembleia/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoBuscarPautasPorAssembleiaInexistente() throws Exception {
+        mockMvc.perform(get(URL + "/assembleia/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Assembleia não encontrada"));
     }
 
 }

@@ -54,8 +54,7 @@ public class PautaController {
 
     @Operation(summary = "Busca todas as pautas")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se as pautas forem encontradas com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Se nenhuma pauta for encontrada")
+            @ApiResponse(responseCode = "200", description = "Se as pautas forem encontradas com sucesso")
     })
     @GetMapping
     public ResponseEntity<List<BuscarPautaDTO>> buscarTodasAsPautas() {
