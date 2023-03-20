@@ -67,11 +67,7 @@ public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
         Pauta pauta = pautaRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Pauta não encontrada."));
 
-        if (pauta.getSessaoDeVotacao() != null) {
             return new BuscarSessaoDeVotacaoDTO(pauta.getSessaoDeVotacao());
-        } else {
-            throw new NotFoundException("Não há sessão de votação na pauta informada.");
-        }
     }
 
     @Override

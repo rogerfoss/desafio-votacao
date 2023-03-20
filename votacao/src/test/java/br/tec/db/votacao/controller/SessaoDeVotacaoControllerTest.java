@@ -1,188 +1,267 @@
 package br.tec.db.votacao.controller;
 
-import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.BuscarSessaoDeVotacaoDTO;
-import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.CriarSessaoDeVotacaoDTO;
-import br.tec.db.votacao.enums.SessaoDeVotacaoStatusEnum;
-import br.tec.db.votacao.mapper.SessaoDeVotacaoMapper;
-import br.tec.db.votacao.model.Pauta;
-import br.tec.db.votacao.model.SessaoDeVotacao;
-import br.tec.db.votacao.service.SessaoDeVotacaoService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.jdbc.SqlGroup;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import static br.tec.db.votacao.SqlProvider.*;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureJsonTesters
 public class SessaoDeVotacaoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private JacksonTester<CriarSessaoDeVotacaoDTO> criarSessaoDeVotacaoDtoJson;
-
-    @MockBean
-    private SessaoDeVotacaoService sessaoDeVotacaoService;
-
-    private List<BuscarSessaoDeVotacaoDTO> sessoesDeVotacao;
-    private SessaoDeVotacao sessaoDeVotacao1, sessaoDeVotacao2;
-
-    @BeforeEach
-    public void inicializar() {
-        sessaoDeVotacao1 = new SessaoDeVotacao(1L, LocalDateTime.now(), null,
-                SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
-
-        sessaoDeVotacao2 = new SessaoDeVotacao(2L, LocalDateTime.now(), null,
-                SessaoDeVotacaoStatusEnum.INICIADA, new Pauta(), null);
-
-        sessoesDeVotacao = new ArrayList<>();
-        sessoesDeVotacao.add(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
-        sessoesDeVotacao.add(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao2));
-    }
+    private final String URL = "/sessao-de-votacao";
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveCriarUmaSessaoDeVotacaoEmUmaPauta() throws Exception {
-        CriarSessaoDeVotacaoDTO criarSessaoDeVotacaoDTO = new CriarSessaoDeVotacaoDTO(LocalDateTime.now(), 1L);
-        when(sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDTO))
-                .thenReturn(SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO));
-
-
-        mockMvc.perform(post("/sessao-de-votacao")
+        mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(criarSessaoDeVotacaoDtoJson.write(criarSessaoDeVotacaoDTO).getJson()))
+                        .content("{\"inicio\": \"2023-03-20T10:00:00\",\"idPauta\": \"1\"}"))
+                .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated());
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("INICIADA"));
     }
 
     @Test
-    public void deveRetornarBadRequestAoCriarSessaoDeVotacaoComDTONull() throws Exception {
-        when(sessaoDeVotacaoService.criarSessaoDeVotacao(any(CriarSessaoDeVotacaoDTO.class))).thenReturn(null);
-
-        mockMvc.perform(post("/sessao-de-votacao")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void deveRetornarBadRequestAoCriarSessaoSemInformarInicio() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idPauta\": \"1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo")
+                        .value("A data e hora de início da sessão de votação precisa ser informada."));
     }
 
     @Test
-    public void deveRetornarBadRequestAoCriarSessaoEmUmaPautaJaEncerrada() throws Exception {
-        when(sessaoDeVotacaoService.criarSessaoDeVotacao(any(CriarSessaoDeVotacaoDTO.class)))
-                .thenThrow(new RuntimeException("Pauta já encerrada!"));
-
-        mockMvc.perform(post("/sessao-de-votacao")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    public void deveRetornarBadRequestAoCriarSessaoSemInformarIdPauta() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"inicio\": \"2023-03-20T10:00:00\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagemCampo").value("O ID da pauta precisa ser informado."));
     }
 
     @Test
+    public void deveRetornarBadRequestAoCriarSessaoComIdPautaInvalido() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"inicio\": \"2023-03-20T10:00:00\",\"idPauta\": \"abc\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to read request"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarBadRequestAoCriarSessaoEmUmaPautaJaDefinida() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"inicio\": \"2023-03-20T10:00:00\",\"idPauta\": \"2\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem")
+                        .value("Não foi possível criar a sessão de votação, pauta já definida."));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoCriarSessaoEmUmaPautaInexistente() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"inicio\": \"2023-03-20T10:00:00\",\"idPauta\": \"999\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem")
+                        .value("Pauta não encontrada."));
+    }
+
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveBuscarTodasAsSessoesDeVotacao() throws Exception {
-
-        when(sessaoDeVotacaoService.buscarTodasAsSessoesDeVotacao()).thenReturn(sessoesDeVotacao);
-
-        mockMvc.perform(get("/sessao-de-votacao")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[1].id").value(2));
     }
 
     @Test
-    public void deveRetornarNotFoundAoBuscarTodasAsSessoesDeVotacaoVazio() throws Exception {
-        List<BuscarSessaoDeVotacaoDTO> sessoesDeVotacao = new ArrayList<>();
-        when(sessaoDeVotacaoService.buscarTodasAsSessoesDeVotacao()).thenReturn(sessoesDeVotacao);
-
-        mockMvc.perform(get("/sessao-de-votacao"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveBuscarSessaoDeVotacaoPorId() throws Exception {
-
-        when(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorId(1L))
-                .thenReturn(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
-
-        mockMvc.perform(get("/sessao-de-votacao/1")
+        mockMvc.perform(get(URL + "/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("INICIADA"));
     }
 
-    @Test
-    public void deveRetornarNotFoundAoBuscarSessaoDeVotacaoPorIdInexistente() throws Exception {
-
-        mockMvc.perform(get("/sessao-de-votacao/10"))
-                .andExpect(status().isNotFound());
-    }
 
     @Test
     public void deveRetornarBadRequestAoBuscarSessaoDeVotacaoPorIdInvalido() throws Exception {
-
-        mockMvc.perform(get("/sessao-de-votacao/abc")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL + "/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
     }
 
     @Test
-    public void deveBuscarSessaoDeVotacaoPorPauta() throws Exception {
-
-        when(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(1L))
-                .thenReturn(new BuscarSessaoDeVotacaoDTO(sessaoDeVotacao1));
-
-        mockMvc.perform(get("/sessao-de-votacao/pauta/1")
-                        .contentType(MediaType.APPLICATION_JSON))
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoBuscarSessaoDeVotacaoPorIdInexistente() throws Exception {
+        mockMvc.perform(get(URL + "/999"))
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada."));
     }
 
     @Test
-    public void deveRetornarNotFoundAoBuscarSessaoDeVotacaoPorPautaInexistente() throws Exception {
-
-        mockMvc.perform(get("/sessao-de-votacao/pauta/10")
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveBuscarSessaoDeVotacaoPorPauta() throws Exception {
+        mockMvc.perform(get(URL + "/pauta/1")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("INICIADA"));
     }
 
     @Test
     public void deveRetornarBadRequestAoBuscarSessaoDeVotacaoPorPautaInvalido() throws Exception {
-
-        mockMvc.perform(get("/sessao-de-votacao/pauta/abc")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get(URL + "/pauta/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
     }
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoBuscarSessaoDeVotacaoPorPautaInexistente() throws Exception {
+        mockMvc.perform(get(URL + "/pauta/999"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Pauta não encontrada."));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveFinalizarUmaSessaoDeVotacao() throws Exception {
 
-        mockMvc.perform(put("/sessao-de-votacao/encerrar/1")
+        mockMvc.perform(put(URL + "/encerrar/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarBadRequestAoFinalizarUmaSessaoDeVotacaoQueJaFinalizada() throws Exception {
+        mockMvc.perform(put(URL + "/encerrar/2")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação já encerrada."));
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoFinalizarUmaSessaoDeVotacaoComIdInvalido() throws Exception {
+        mockMvc.perform(put(URL + "/encerrar/abc")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoFinalizarUmaSessaoDeVotacaoInexistente() throws Exception {
+        mockMvc.perform(put(URL + "/encerrar/999")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada."));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveCalcularResultadoDaSessaoDeVotacao() throws Exception {
 
-        mockMvc.perform(put("/sessao-de-votacao/resultado/1")
+        mockMvc.perform(put(URL + "/resultado/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    public void deveRetornarBadRequestAoCalcularResultadoDaSessaoDeVotacaoComIdInvalido() throws Exception {
+        mockMvc.perform(put(URL + "/resultado/abc")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
+    public void deveRetornarNotFoundAoCalcularResultadoDaSessaoDeVotacaoInexistente() throws Exception {
+        mockMvc.perform(put(URL + "/resultado/999")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada."));
     }
 }
 
