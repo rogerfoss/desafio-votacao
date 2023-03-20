@@ -66,7 +66,7 @@ public class PautaController {
             @ApiResponse(responseCode = "200", description = "Se as pautas forem encontradas com sucesso"),
             @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
             @ApiResponse(responseCode = "404",
-                    description = "Se nenhuma pauta for encontrada para a assembleia informada")
+                    description = "Se não for encontrada uma assembleia com o id informado")
     })
     @GetMapping("/assembleia/{id}")
     public ResponseEntity<List<BuscarPautaDTO>> buscarPautasPorAssembleia(@PathVariable Long id) {

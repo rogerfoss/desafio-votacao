@@ -97,6 +97,10 @@ public class AssembleiaControllerTest {
     }
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveRetornarNotFoundAoBuscarAssembleiaPorIdInexistente() throws Exception {
         mockMvc.perform(get(URL + "/999"))
                 .andExpect(status().isNotFound())
@@ -138,6 +142,10 @@ public class AssembleiaControllerTest {
     }
 
     @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertAssembleia),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveRetornarNotFoundAoFinalizarAssembleiaInexistente() throws Exception {
         mockMvc.perform(put(URL + "/999")
                         .contentType(MediaType.APPLICATION_JSON))
