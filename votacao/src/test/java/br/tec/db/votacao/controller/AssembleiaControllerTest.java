@@ -2,7 +2,6 @@ package br.tec.db.votacao.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.AutoConfigureJsonTesters;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -18,7 +17,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@AutoConfigureJsonTesters
 public class AssembleiaControllerTest {
 
     @Autowired
@@ -87,7 +85,7 @@ public class AssembleiaControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.inicio").value("2023-02-27T08:00:00"))
-                .andExpect(jsonPath("$.status").value("ENCERRADA"));
+                .andExpect(jsonPath("$.status").value("INICIADA"));
     }
 
     @Test
@@ -112,7 +110,7 @@ public class AssembleiaControllerTest {
             @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
     })
     public void deveFinalizarAssembleia() throws Exception {
-        mockMvc.perform(put(URL + "/2")
+        mockMvc.perform(put(URL + "/1")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
@@ -123,7 +121,7 @@ public class AssembleiaControllerTest {
             @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
     })
     public void deveRetornarBadRequestAoFinalizarAssembleiaJaFinalizada() throws Exception {
-        mockMvc.perform(put(URL + "/1")
+        mockMvc.perform(put(URL + "/2")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
