@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -53,8 +53,8 @@ class AssembleiaServiceImplTest {
         Assembleia assembleia = assembleiaService.criarAssembleia(criarAssembleiaDTO);
 
         verify(assembleiaRepository).save(any(Assembleia.class));
-
-        assertEquals(assembleia.getStatus(), AssembleiaStatusEnum.INICIADA);
+        assertThat(assembleia.getStatus()).isEqualTo(AssembleiaStatusEnum.INICIADA);
+        assertThat(assembleia.getInicio()).isEqualTo(criarAssembleiaDTO.inicio());
     }
 
     @Test
@@ -68,7 +68,7 @@ class AssembleiaServiceImplTest {
         List<BuscarAssembleiaDTO> assembleiasDTO = assembleiaService.buscarTodasAssembleias();
 
         verify(assembleiaRepository).findAll();
-        assertEquals(assembleiasDTO.size(), 2);
+        assertThat(assembleiasDTO).hasSize(2);
     }
 
     @Test
@@ -77,7 +77,7 @@ class AssembleiaServiceImplTest {
         BuscarAssembleiaDTO assembleiaDTO = assembleiaService.buscarAssembleiaPorId(1L);
 
         verify(assembleiaRepository).findById(1L);
-        assertEquals(assembleiaDTO.status(), AssembleiaStatusEnum.INICIADA);
+        assertThat(assembleia.getId()).isEqualTo(assembleiaDTO.id());
     }
 
     @Test
@@ -94,7 +94,7 @@ class AssembleiaServiceImplTest {
 
         verify(assembleiaRepository).findById(1L);
         verify(assembleiaRepository).save(assembleia);
-        assertEquals(assembleia.getStatus(), AssembleiaStatusEnum.ENCERRADA);
+        assertThat(assembleia.getStatus()).isEqualTo(AssembleiaStatusEnum.ENCERRADA);
     }
 
     @Test

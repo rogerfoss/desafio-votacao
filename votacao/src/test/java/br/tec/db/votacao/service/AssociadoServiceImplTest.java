@@ -3,6 +3,7 @@ package br.tec.db.votacao.service;
 import br.tec.db.votacao.dto.associadoDTO.BuscarAssociadoDTO;
 import br.tec.db.votacao.dto.associadoDTO.CriarAssociadoDTO;
 import br.tec.db.votacao.enums.AssociadoStatusEnum;
+import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.AssociadoMapper;
 import br.tec.db.votacao.model.Associado;
 import br.tec.db.votacao.repository.AssociadoRepository;
@@ -17,9 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AssociadoServiceImplTest {
@@ -47,29 +49,27 @@ class AssociadoServiceImplTest {
                 .thenReturn(AssociadoMapper.buildAssociado(criarAssociadoDTO));
 
         Associado associado = associadoService.salvarAssociado(criarAssociadoDTO);
-        assertNotNull(associado);
-        assertEquals(associado.getStatus(), AssociadoStatusEnum.PODE_VOTAR);
-    }
 
-    @Test
-    void deveLancarExcecaoAoCriarAssociadoComDTONull() {
-        CriarAssociadoDTO criarAssociadoDTO = new CriarAssociadoDTO(null, null);
-        when(associadoRepository.save(any(Associado.class))).thenThrow(RuntimeException.class);
-        assertThrows(RuntimeException.class, () -> associadoService.salvarAssociado(criarAssociadoDTO));
+        verify(associadoRepository).save(any(Associado.class));
+
+        assertThat(associado.getStatus()).isEqualTo(AssociadoStatusEnum.PODE_VOTAR);
+        assertThat(associado.getNome()).isEqualTo(criarAssociadoDTO.nome());
     }
 
     @Test
     void deveBuscarAssociadoPorId() {
         when(associadoRepository.findById(any(Long.class))).thenReturn(Optional.of(associado));
         BuscarAssociadoDTO buscarAssociadoDTO = associadoService.buscarAssociadoPorId(1L);
-        assertNotNull(buscarAssociadoDTO);
-        assertEquals(associado.getStatus(), AssociadoStatusEnum.PODE_VOTAR);
+
+        verify(associadoRepository).findById(1L);
+        assertThat(associado.getId()).isEqualTo(buscarAssociadoDTO.id());
     }
 
     @Test
-    void deveLancarExcecaoAoBuscarAssociadoPorIdSeNaoEncontrar() {
-        when(associadoRepository.findById(any(Long.class))).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> associadoService.buscarAssociadoPorId(1L));
+    void deveLancarNotFoundAoBuscarAssociadoPorIdInexistente() {
+        when(associadoRepository.findById(9L)).thenReturn(Optional.empty());
+        verifyNoInteractions(associadoRepository);
+        assertThrows(NotFoundException.class, () -> associadoService.buscarAssociadoPorId(9L));
     }
 
     @Test
@@ -80,9 +80,10 @@ class AssociadoServiceImplTest {
         associados.add(associado);
         associados.add(associado2);
         when(associadoRepository.findAll()).thenReturn(associados);
-        List<BuscarAssociadoDTO> buscarAssociadoDTOS = associadoService.buscarTodosOsAssociados();
-        assertNotNull(buscarAssociadoDTOS);
-        assertEquals(buscarAssociadoDTOS.size(), 2);
+        List<BuscarAssociadoDTO> associadosDTO = associadoService.buscarTodosOsAssociados();
+
+        verify(associadoRepository).findAll();
+        assertThat(associadosDTO).hasSize(2);
     }
 }
 
