@@ -1,31 +1,40 @@
 package br.tec.db.votacao.service;
 
+import br.tec.db.votacao.dto.pautaDTO.BuscarPautaDTO;
 import br.tec.db.votacao.dto.pautaDTO.CriarPautaDTO;
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
 import br.tec.db.votacao.enums.PautaStatusEnum;
+import br.tec.db.votacao.exception.BadRequestException;
+import br.tec.db.votacao.exception.NotFoundException;
+import br.tec.db.votacao.mapper.PautaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.model.Pauta;
 import br.tec.db.votacao.repository.AssembleiaRepository;
 import br.tec.db.votacao.repository.PautaRepository;
 import br.tec.db.votacao.service.impl.PautaServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class PautaServiceImplTest {
 
     private PautaServiceImpl pautaService;
-
-    @Captor
-    private ArgumentCaptor<Pauta> pautaArgumentCaptor;
+    private CriarPautaDTO criarPautaDTO;
+    private Pauta pauta;
+    private Assembleia assembleia;
 
     @Mock
     private PautaRepository pautaRepository;
@@ -35,46 +44,97 @@ class PautaServiceImplTest {
 
     @BeforeEach
     public void inicializar() {
-        MockitoAnnotations.openMocks(this);
         pautaService = new PautaServiceImpl(pautaRepository, assembleiaRepository);
+        criarPautaDTO = new CriarPautaDTO("Pauta 1", 1L);
+
+        assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, new ArrayList<>());
+        pauta = new Pauta();
+        pauta.setAssembleia(assembleia);
+        assembleia.getPautas().add(pauta);
     }
 
-    private List<Pauta> listaPautas() {
-        List<Pauta> list = new ArrayList<>();
-
-        list.add(new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(1L, LocalDateTime.now(),
-                null, AssembleiaStatusEnum.INICIADA, null, null), null));
-
-        list.add(new Pauta(2L, "Pauta 2", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(2L, LocalDateTime.now(),
-                null, AssembleiaStatusEnum.INICIADA, null, null), null));
-
-        list.add(new Pauta(3L, "Pauta 3", PautaStatusEnum.AGUARDANDO_VOTACAO, new Assembleia(3L, LocalDateTime.now(),
-                null, AssembleiaStatusEnum.INICIADA, null, null), null));
-
-        return list;
-    }
-
-    @Disabled
     @Test
-    public void criarPautaTest() {
-        CriarPautaDTO criarPautaDTO = new CriarPautaDTO("Pauta 1", 1L);
-        Assembleia assembleia = new Assembleia(1L, LocalDateTime.now(), null,
-                AssembleiaStatusEnum.INICIADA, null, null);
+    public void deveCriarUmaPautaEmUmaAssembleia() {
+        when(pautaRepository.save(any(Pauta.class))).thenReturn(PautaMapper.buildPauta(criarPautaDTO));
 
-        Mockito.when(this.assembleiaRepository.findById(criarPautaDTO.idAssembleia()))
-                .thenReturn(Optional.of(assembleia));
+        when(assembleiaRepository.findById(any(Long.class))).thenReturn(Optional.of(assembleia));
 
-        Mockito.when(this.pautaRepository.save(Mockito.any(Pauta.class)))
-                .thenReturn(new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, assembleia, null));
+        pauta = pautaService.criarPauta(criarPautaDTO);
 
-        Pauta pautaCriada = pautaService.criarPauta(criarPautaDTO);
+        assertThat(pauta.getStatus()).isEqualTo(PautaStatusEnum.AGUARDANDO_VOTACAO);
+        assertThat(pauta.getTitulo()).isEqualTo(criarPautaDTO.titulo());
+        assertThat(pauta.getAssembleia().getId()).isEqualTo(criarPautaDTO.idAssembleia());
 
-        Mockito.verify(pautaRepository).save(pautaArgumentCaptor.capture());
-        Pauta pautaCapturada = pautaArgumentCaptor.getValue();
+        verify(assembleiaRepository).findById(any(Long.class));
+        verify(pautaRepository).save(any(Pauta.class));
+    }
 
-        assertEquals(pautaCriada.getId(), pautaCapturada.getId());
-        assertEquals(pautaCriada.getStatus(), pautaCapturada.getStatus());
-        Mockito.verify(pautaRepository, Mockito.times(1)).save(pautaCapturada);
+    @Test
+    public void deveRetornarNotFoundSeAssembleiaNaoEncontradaAoCriarPauta() {
+        when(assembleiaRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> pautaService.criarPauta(criarPautaDTO));
+        verifyNoInteractions(pautaRepository);
+    }
+
+    @Test
+    public void deveRetornarBadRequestSeAssembleiaJaEncerradaAoCriarPauta() {
+        assembleia.setStatus(AssembleiaStatusEnum.ENCERRADA);
+        when(assembleiaRepository.findById(any(Long.class))).thenReturn(Optional.of(assembleia));
+
+        assertThrows(BadRequestException.class, () -> pautaService.criarPauta(criarPautaDTO));
+        verifyNoInteractions(pautaRepository);
+    }
+
+    @Test
+    void deveBuscarPautaPorId() {
+        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.of(pauta));
+        BuscarPautaDTO buscarPautaDTO = pautaService.buscarPautaPorId(1L);
+
+        assertThat(pauta.getId()).isEqualTo(buscarPautaDTO.id());
+        verify(pautaRepository).findById(1L);
+    }
+
+    @Test
+    void deveLancarNotFoundAoBuscarPautaPorIdInexistente() {
+        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> pautaService.buscarPautaPorId(99L));
+        verify(pautaRepository).findById(99L);
+    }
+
+    @Test
+    void deveBuscarTodasAsPautas() {
+        List<Pauta> pautas = new ArrayList<>();
+        Pauta pauta2 = new Pauta();
+        pauta2.setAssembleia(assembleia);
+        pautas.add(pauta);
+        pautas.add(pauta2);
+
+        when(pautaRepository.findAll()).thenReturn(pautas);
+        List<BuscarPautaDTO> buscarPautasDTO = pautaService.buscarTodasAsPautas();
+
+        assertThat(buscarPautasDTO).hasSize(2);
+        verify(pautaRepository).findAll();
+    }
+
+    @Test
+    void deveBuscarPautasPorAssembleia() {
+        when(assembleiaRepository.findById(any(Long.class))).thenReturn(Optional.of(assembleia));
+
+        List<BuscarPautaDTO> buscarPautasDTO = pautaService.buscarPautasPorAssembleia(1L);
+
+        assertThat(buscarPautasDTO).hasSize(1);
+        assertThat(pauta.getId()).isEqualTo(buscarPautasDTO.get(0).id());
+        verify(assembleiaRepository).findById(1L);
+    }
+
+    @Test
+    void deveLancarNotFoundAoBuscarPautasPorAssembleiaInexistente() {
+        when(assembleiaRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> pautaService.buscarPautasPorAssembleia(99L));
+        verify(assembleiaRepository).findById(99L);
     }
 
 }
