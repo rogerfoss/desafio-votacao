@@ -67,7 +67,8 @@ public class SessaoDeVotacaoController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Se as sessões de votação forem encontradas"),
             @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
-            @ApiResponse(responseCode = "404", description = "Se não for encontrada uma pauta com o id informado")
+            @ApiResponse(responseCode = "404", description = "Se não for encontrada uma pauta com o id informado" +
+                    " ou se não houver nenhuma sessão de votação para a pauta informada")
     })
     @GetMapping("/pauta/{id}")
     public ResponseEntity<BuscarSessaoDeVotacaoDTO> buscarSessaoDeVotacaoPorPauta(@PathVariable Long id) {
