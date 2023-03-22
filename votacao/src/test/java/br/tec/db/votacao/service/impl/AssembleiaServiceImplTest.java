@@ -1,4 +1,4 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.assembleiaDTO.BuscarAssembleiaDTO;
 import br.tec.db.votacao.dto.assembleiaDTO.CriarAssembleiaDTO;
@@ -8,7 +8,6 @@ import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.AssembleiaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.repository.AssembleiaRepository;
-import br.tec.db.votacao.service.impl.AssembleiaServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,9 +28,7 @@ import static org.mockito.Mockito.*;
 class AssembleiaServiceImplTest {
 
     private AssembleiaServiceImpl assembleiaService;
-
     private CriarAssembleiaDTO criarAssembleiaDTO;
-
     private Assembleia assembleia;
 
     @Mock
@@ -52,9 +49,9 @@ class AssembleiaServiceImplTest {
 
         Assembleia assembleia = assembleiaService.criarAssembleia(criarAssembleiaDTO);
 
-        verify(assembleiaRepository).save(any(Assembleia.class));
         assertThat(assembleia.getStatus()).isEqualTo(AssembleiaStatusEnum.INICIADA);
         assertThat(assembleia.getInicio()).isEqualTo(criarAssembleiaDTO.inicio());
+        verify(assembleiaRepository).save(any(Assembleia.class));
     }
 
     @Test
@@ -67,8 +64,8 @@ class AssembleiaServiceImplTest {
         when(assembleiaRepository.findAll()).thenReturn(assembleias);
         List<BuscarAssembleiaDTO> assembleiasDTO = assembleiaService.buscarTodasAssembleias();
 
-        verify(assembleiaRepository).findAll();
         assertThat(assembleiasDTO).hasSize(2);
+        verify(assembleiaRepository).findAll();
     }
 
     @Test
@@ -76,15 +73,16 @@ class AssembleiaServiceImplTest {
         when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
         BuscarAssembleiaDTO assembleiaDTO = assembleiaService.buscarAssembleiaPorId(1L);
 
-        verify(assembleiaRepository).findById(1L);
         assertThat(assembleia.getId()).isEqualTo(assembleiaDTO.id());
+        verify(assembleiaRepository).findById(1L);
     }
 
     @Test
     void deveLancarNotFoundAoBuscarAssembleiaPorIdInexistente() {
-        when(assembleiaRepository.findById(9L)).thenReturn(Optional.empty());
-        verifyNoInteractions(assembleiaRepository);
-        assertThrows(NotFoundException.class, () -> assembleiaService.buscarAssembleiaPorId(9L));
+        when(assembleiaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> assembleiaService.buscarAssembleiaPorId(99L));
+        verify(assembleiaRepository).findById(99L);
     }
 
     @Test
@@ -92,24 +90,28 @@ class AssembleiaServiceImplTest {
         when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
         assembleiaService.finalizarAssembleia(1L);
 
+        assertThat(assembleia.getStatus()).isEqualTo(AssembleiaStatusEnum.ENCERRADA);
         verify(assembleiaRepository).findById(1L);
         verify(assembleiaRepository).save(assembleia);
-        assertThat(assembleia.getStatus()).isEqualTo(AssembleiaStatusEnum.ENCERRADA);
     }
 
     @Test
     void deveLancarBadRequestAoFinalizarAssembleiaJaEncerrada() {
         assembleia.setStatus(AssembleiaStatusEnum.ENCERRADA);
         when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
-        verifyNoInteractions(assembleiaRepository);
+
         assertThrows(BadRequestException.class, () -> assembleiaService.finalizarAssembleia(1L));
+        verify(assembleiaRepository).findById(1L);
+        verifyNoMoreInteractions(assembleiaRepository);
     }
 
     @Test
     void deveLancarNotFoundAoFinalizarAssembleiaInexistente() {
-        when(assembleiaRepository.findById(1L)).thenReturn(Optional.empty());
-        verifyNoInteractions(assembleiaRepository);
-        assertThrows(RuntimeException.class, () -> assembleiaService.finalizarAssembleia(1L));
+        when(assembleiaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> assembleiaService.finalizarAssembleia(99L));
+        verify(assembleiaRepository).findById(99L);
+        verifyNoMoreInteractions(assembleiaRepository);
     }
 
 }

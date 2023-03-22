@@ -1,4 +1,4 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.associadoDTO.BuscarAssociadoDTO;
 import br.tec.db.votacao.dto.associadoDTO.CriarAssociadoDTO;
@@ -7,7 +7,6 @@ import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.AssociadoMapper;
 import br.tec.db.votacao.model.Associado;
 import br.tec.db.votacao.repository.AssociadoRepository;
-import br.tec.db.votacao.service.impl.AssociadoServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,15 +20,14 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AssociadoServiceImplTest {
 
     private AssociadoServiceImpl associadoService;
-
     private CriarAssociadoDTO criarAssociadoDTO;
-
     private Associado associado;
 
     @Mock
@@ -50,40 +48,39 @@ class AssociadoServiceImplTest {
 
         Associado associado = associadoService.salvarAssociado(criarAssociadoDTO);
 
-        verify(associadoRepository).save(any(Associado.class));
-
         assertThat(associado.getStatus()).isEqualTo(AssociadoStatusEnum.PODE_VOTAR);
         assertThat(associado.getNome()).isEqualTo(criarAssociadoDTO.nome());
+        verify(associadoRepository).save(any(Associado.class));
     }
 
     @Test
     void deveBuscarAssociadoPorId() {
-        when(associadoRepository.findById(any(Long.class))).thenReturn(Optional.of(associado));
+        when(associadoRepository.findById(1L)).thenReturn(Optional.of(associado));
         BuscarAssociadoDTO buscarAssociadoDTO = associadoService.buscarAssociadoPorId(1L);
 
-        verify(associadoRepository).findById(1L);
         assertThat(associado.getId()).isEqualTo(buscarAssociadoDTO.id());
+        verify(associadoRepository).findById(1L);
     }
 
     @Test
     void deveLancarNotFoundAoBuscarAssociadoPorIdInexistente() {
-        when(associadoRepository.findById(9L)).thenReturn(Optional.empty());
-        verifyNoInteractions(associadoRepository);
-        assertThrows(NotFoundException.class, () -> associadoService.buscarAssociadoPorId(9L));
+        when(associadoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> associadoService.buscarAssociadoPorId(99L));
+        verify(associadoRepository).findById(99L);
     }
 
     @Test
     void deveBuscarTodosOsAssociados() {
         List<Associado> associados = new ArrayList<>();
-        Associado associado = new Associado();
         Associado associado2 = new Associado();
         associados.add(associado);
         associados.add(associado2);
         when(associadoRepository.findAll()).thenReturn(associados);
         List<BuscarAssociadoDTO> associadosDTO = associadoService.buscarTodosOsAssociados();
 
-        verify(associadoRepository).findAll();
         assertThat(associadosDTO).hasSize(2);
+        verify(associadoRepository).findAll();
     }
 }
 

@@ -1,4 +1,4 @@
-package br.tec.db.votacao.service;
+package br.tec.db.votacao.service.impl;
 
 import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.BuscarSessaoDeVotacaoDTO;
 import br.tec.db.votacao.dto.sessaoDeVotacaoDTO.CriarSessaoDeVotacaoDTO;
@@ -14,7 +14,6 @@ import br.tec.db.votacao.model.SessaoDeVotacao;
 import br.tec.db.votacao.model.Voto;
 import br.tec.db.votacao.repository.PautaRepository;
 import br.tec.db.votacao.repository.SessaoDeVotacaoRepository;
-import br.tec.db.votacao.service.impl.SessaoDeVotacaoServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,41 +60,42 @@ class SessaoDeVotacaoServiceImplTest {
         when(sessaoDeVotacaoRepository.save(any(SessaoDeVotacao.class)))
                 .thenReturn(SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO));
 
-        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.of(pauta));
+        when(pautaRepository.findById(1L)).thenReturn(Optional.of(pauta));
 
         sessaoDeVotacao = sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDTO);
 
         assertThat(sessaoDeVotacao.getStatus()).isEqualTo(SessaoDeVotacaoStatusEnum.INICIADA);
         assertThat(sessaoDeVotacao.getInicio()).isEqualTo(criarSessaoDeVotacaoDTO.inicio());
         assertThat(sessaoDeVotacao.getPauta().getId()).isEqualTo(criarSessaoDeVotacaoDTO.idPauta());
-        verify(pautaRepository).findById(any(Long.class));
+        verify(pautaRepository).findById(1L);
         verify(sessaoDeVotacaoRepository).save(any(SessaoDeVotacao.class));
     }
 
     @Test
     public void deveRetornarNotFoundSePautaNaoEncontradaAoCriarSessaoDeVotacao() {
-        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+        when(pautaRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
                 () -> sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDTO));
 
-        verify(pautaRepository).findById(any(Long.class));
+        verify(pautaRepository).findById(anyLong());
     }
 
     @Test
     public void deveRetornarBadRequestSePautaJaEstiverDefinidaAoCriarSessaoDeVotacao() {
         pauta.setStatus(PautaStatusEnum.APROVADA);
-        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.of(pauta));
+        when(pautaRepository.findById(1L)).thenReturn(Optional.of(pauta));
 
         assertThrows(BadRequestException.class,
                 () -> sessaoDeVotacaoService.criarSessaoDeVotacao(criarSessaoDeVotacaoDTO));
 
+        verify(pautaRepository).findById(1L);
         verifyNoInteractions(sessaoDeVotacaoRepository);
     }
 
     @Test
     public void deveBuscarSessaoPorId() {
-        when(sessaoDeVotacaoRepository.findById(any(Long.class))).thenReturn(Optional.of(sessaoDeVotacao));
+        when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));
         BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoDTO = sessaoDeVotacaoService.buscarSessaoDeVotacaoPorId(1L);
 
         assertThat(sessaoDeVotacao.getId()).isEqualTo(buscarSessaoDeVotacaoDTO.id());
@@ -104,7 +104,7 @@ class SessaoDeVotacaoServiceImplTest {
 
     @Test
     void deveLancarNotFoundAoBuscarSessaoPorIdInexistente() {
-        when(sessaoDeVotacaoRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+        when(sessaoDeVotacaoRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
                 () -> sessaoDeVotacaoService.buscarSessaoDeVotacaoPorId(99L));
@@ -129,7 +129,7 @@ class SessaoDeVotacaoServiceImplTest {
 
     @Test
     void deveBuscarSessaoDeVotacaoPorPauta() {
-        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.of(pauta));
+        when(pautaRepository.findById(1L)).thenReturn(Optional.of(pauta));
 
         BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoDTO = sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(1L);
 
@@ -140,7 +140,7 @@ class SessaoDeVotacaoServiceImplTest {
 
     @Test
     void deveLancarNotFoundAoBuscarSessaoDeVotacaoPorPautaInexistente() {
-        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+        when(pautaRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
                 () -> sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(99L));
@@ -151,7 +151,7 @@ class SessaoDeVotacaoServiceImplTest {
     @Test
     void deveLancarNotFoundAoBuscarSessaoDeVotacaoPorPautaSemSessaoDeVotacao() {
         pauta.setSessaoDeVotacao(null);
-        when(pautaRepository.findById(any(Long.class))).thenReturn(Optional.of(pauta));
+        when(pautaRepository.findById(1L)).thenReturn(Optional.of(pauta));
 
         assertThrows(NotFoundException.class,
                 () -> sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(1L));
@@ -162,7 +162,7 @@ class SessaoDeVotacaoServiceImplTest {
     @Test
     void deveEncerrarSessaoDeVotacao() {
         sessaoDeVotacao.setStatus(SessaoDeVotacaoStatusEnum.INICIADA);
-        when(sessaoDeVotacaoRepository.findById(any(Long.class))).thenReturn(Optional.of(sessaoDeVotacao));
+        when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));
 
         sessaoDeVotacaoService.encerrarSessaoDeVotacao(1L);
 
@@ -173,7 +173,7 @@ class SessaoDeVotacaoServiceImplTest {
 
     @Test
     void deveLancarNotFoundAoEncerrarSessaoDeVotacaoInexistente() {
-        when(sessaoDeVotacaoRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+        when(sessaoDeVotacaoRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
                 () -> sessaoDeVotacaoService.encerrarSessaoDeVotacao(99L));
@@ -184,7 +184,7 @@ class SessaoDeVotacaoServiceImplTest {
     @Test
     void deveLancarBadRequestAoEncerrarSessaoDeVotacaoJaEncerrada() {
         sessaoDeVotacao.setStatus(SessaoDeVotacaoStatusEnum.ENCERRADA);
-        when(sessaoDeVotacaoRepository.findById(any(Long.class))).thenReturn(Optional.of(sessaoDeVotacao));
+        when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));
 
         assertThrows(BadRequestException.class,
                 () -> sessaoDeVotacaoService.encerrarSessaoDeVotacao(1L));
@@ -199,7 +199,7 @@ class SessaoDeVotacaoServiceImplTest {
         votos.add(new Voto(2L, VotoStatusEnum.SIM, sessaoDeVotacao, new Associado()));
         sessaoDeVotacao.setVotos(votos);
 
-        when(sessaoDeVotacaoRepository.findById(any(Long.class))).thenReturn(Optional.of(sessaoDeVotacao));
+        when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));
 
         sessaoDeVotacaoService.calcularResultadoDaSessaoDeVotacao(1L);
 
@@ -210,7 +210,7 @@ class SessaoDeVotacaoServiceImplTest {
 
     @Test
     void deveLancarNotFoundAoCalcularResultadoDaSessaoDeVotacaoInexistente() {
-        when(sessaoDeVotacaoRepository.findById(any(Long.class))).thenReturn(Optional.empty());
+        when(sessaoDeVotacaoRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
                 () -> sessaoDeVotacaoService.calcularResultadoDaSessaoDeVotacao(99L));
