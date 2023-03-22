@@ -53,7 +53,6 @@ public class VotoServiceImpl implements VotoService {
         } else {
             Voto voto = VotoMapper.buildVoto(votarDTO);
             sessaoDeVotacao.getVotos().add(voto);
-            votoRepository.save(voto);
             return votoRepository.save(voto);
         }
     }
