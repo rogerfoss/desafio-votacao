@@ -5,9 +5,9 @@ VALUES ('João Ferreira', '52342310030', 'PODE_VOTAR'),
 INSERT INTO assembleia (inicio, status)
 VALUES ('2023-02-27T08:00:00', 'INICIADA');
 
-INSERT INTO pauta (titulo, status, assembleia_id)
-VALUES ('pauta 1', 'AGUARDANDO_VOTACAO', 1),
-       ('pauta 2', 'AGUARDANDO_VOTACAO', 1);
+INSERT INTO pauta (titulo, status)
+VALUES ('pauta 1', 'AGUARDANDO_VOTACAO'),
+       ('pauta 2', 'AGUARDANDO_VOTACAO');
 
 INSERT INTO sessao_de_votacao (inicio, status, pauta_id)
 VALUES ('2023-02-27 08:30:00', 'INICIADA', 1),

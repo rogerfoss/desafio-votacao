@@ -6,10 +6,9 @@ import br.tec.db.votacao.model.Pauta;
 public record BuscarPautaDTO(
         Long id,
         String titulo,
-        PautaStatusEnum status,
-        Long assembleiaId
+        PautaStatusEnum status
 ) {
     public BuscarPautaDTO(Pauta pauta) {
-        this(pauta.getId(), pauta.getTitulo(), pauta.getStatus(), pauta.getAssembleia().getId());
+        this(pauta.getId(), pauta.getTitulo(), pauta.getStatus());
     }
 }

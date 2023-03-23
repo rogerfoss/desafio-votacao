@@ -1,6 +1,4 @@
 DELETE
-FROM assembleia_associados;
-DELETE
 FROM voto_associado;
 DELETE
 FROM sessao_de_votacao_votos;

@@ -49,7 +49,7 @@ class SessaoDeVotacaoServiceImplTest {
         sessaoDeVotacaoService = new SessaoDeVotacaoServiceImpl(sessaoDeVotacaoRepository, pautaRepository);
         criarSessaoDeVotacaoDTO = new CriarSessaoDeVotacaoDTO(LocalDateTime.now(), 1L);
 
-        pauta = new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, null, null);
+        pauta = new Pauta(1L, "Pauta 1", PautaStatusEnum.AGUARDANDO_VOTACAO, null);
         sessaoDeVotacao = new SessaoDeVotacao();
         sessaoDeVotacao.setPauta(pauta);
         pauta.setSessaoDeVotacao(sessaoDeVotacao);

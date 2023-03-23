@@ -25,10 +25,6 @@ public class Pauta {
     @Enumerated(EnumType.STRING)
     private PautaStatusEnum status;
 
-    @ManyToOne
-    @JoinColumn(name = "assembleia_id")
-    private Assembleia assembleia;
-
     @OneToOne
     @JoinTable(name = "pauta_sessao_de_votacao", joinColumns = @JoinColumn(name = "pauta_id"),
             inverseJoinColumns = @JoinColumn(name = "sessao_de_votacao_id"))

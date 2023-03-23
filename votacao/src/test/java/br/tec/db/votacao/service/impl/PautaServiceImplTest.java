@@ -46,9 +46,8 @@ class PautaServiceImplTest {
         pautaService = new PautaServiceImpl(pautaRepository, assembleiaRepository);
         criarPautaDTO = new CriarPautaDTO("Pauta 1", 1L);
 
-        assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, null, new ArrayList<>());
+        assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, new ArrayList<>());
         pauta = new Pauta();
-        pauta.setAssembleia(assembleia);
         assembleia.getPautas().add(pauta);
     }
 
@@ -62,7 +61,6 @@ class PautaServiceImplTest {
 
         assertThat(pauta.getStatus()).isEqualTo(PautaStatusEnum.AGUARDANDO_VOTACAO);
         assertThat(pauta.getTitulo()).isEqualTo(criarPautaDTO.titulo());
-        assertThat(pauta.getAssembleia().getId()).isEqualTo(criarPautaDTO.idAssembleia());
 
         verify(assembleiaRepository).findById(1L);
         verify(pautaRepository).save(any(Pauta.class));
@@ -109,7 +107,6 @@ class PautaServiceImplTest {
     void deveBuscarTodasAsPautas() {
         List<Pauta> pautas = new ArrayList<>();
         Pauta pauta2 = new Pauta();
-        pauta2.setAssembleia(assembleia);
         pautas.add(pauta);
         pautas.add(pauta2);
 
