@@ -37,7 +37,6 @@ class VotoControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.status").value("NAO"))
-                .andExpect(jsonPath("$.sessaoDeVotacao.id").value(1))
                 .andExpect(jsonPath("$.associado.id").value(1));
     }
 

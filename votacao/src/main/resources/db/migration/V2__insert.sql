@@ -1,3 +1,5 @@
+# noinspection SqlInsertValuesForFile
+
 INSERT INTO associado (nome, cpf, status)
 VALUES ('João', '12345678901', 'PODE_VOTAR');
 
@@ -19,17 +21,17 @@ VALUES ('2023-02-27 08:30:00', 'INICIADA', 1);
 INSERT INTO sessao_de_votacao (inicio, status, pauta_id)
 VALUES ('2023-02-27 09:00:00', 'INICIADA', 2);
 
-INSERT INTO voto (status, sessao_de_votacao_id)
-VALUES ('SIM', 1);
+INSERT INTO voto (status)
+VALUES ('SIM');
 
-INSERT INTO voto (status, sessao_de_votacao_id)
-VALUES ('SIM', 1);
+INSERT INTO voto (status)
+VALUES ('SIM');
 
-INSERT INTO voto (status, sessao_de_votacao_id)
-VALUES ('NAO', 2);
+INSERT INTO voto (status)
+VALUES ('NAO');
 
-INSERT INTO voto (status, sessao_de_votacao_id)
-VALUES ('NAO', 2);
+INSERT INTO voto (status)
+VALUES ('NAO');
 
 INSERT INTO assembleia_pautas (assembleia_id, pauta_id)
 VALUES (1, 1);

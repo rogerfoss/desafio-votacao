@@ -22,10 +22,6 @@ public class Voto {
     private VotoStatusEnum status;
 
     @ManyToOne
-    @JoinColumn(name = "sessao_de_votacao_id")
-    private SessaoDeVotacao sessaoDeVotacao;
-
-    @ManyToOne
     @JoinTable(name = "voto_associado", joinColumns = @JoinColumn(name = "voto_id"),
             inverseJoinColumns = @JoinColumn(name = "associado_id"))
     private Associado associado;

@@ -56,7 +56,7 @@ class VotoServiceImplTest {
                 1L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA, null, new ArrayList<>());
 
         associado = new Associado(1L, "Joao da Silva", "52342310030", AssociadoStatusEnum.PODE_VOTAR);
-        voto = new Voto(1L, VotoStatusEnum.SIM, sessaoDeVotacao, associado);
+        voto = new Voto(1L, VotoStatusEnum.SIM, associado);
     }
 
     @Test
@@ -68,7 +68,6 @@ class VotoServiceImplTest {
         voto = votoService.votar(votarDTO);
 
         assertThat(voto.getStatus()).isEqualTo(votarDTO.status());
-        assertThat(voto.getSessaoDeVotacao().getId()).isEqualTo(votarDTO.idSessaoDeVotacao());
         assertThat(voto.getAssociado().getId()).isEqualTo(votarDTO.idAssociado());
         verify(sessaoDeVotacaoRepository).findById(anyLong());
         verify(associadoRepository).findById(anyLong());
@@ -138,7 +137,7 @@ class VotoServiceImplTest {
     @Test
     public void devebuscarTodosOsVotos() {
         List<Voto> votos = new ArrayList<>();
-        Voto voto2 = new Voto(2L, VotoStatusEnum.SIM, sessaoDeVotacao, associado);
+        Voto voto2 = new Voto(2L, VotoStatusEnum.SIM, associado);
         votos.add(voto);
         votos.add(voto2);
 

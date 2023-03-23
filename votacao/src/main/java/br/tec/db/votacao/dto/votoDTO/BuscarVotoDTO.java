@@ -5,10 +5,9 @@ import br.tec.db.votacao.model.Voto;
 
 public record BuscarVotoDTO(
         Long id,
-        VotoStatusEnum status,
-        Long sessaoDeVotacaoId
+        VotoStatusEnum status
 ) {
     public BuscarVotoDTO(Voto voto) {
-        this(voto.getId(), voto.getStatus(), voto.getSessaoDeVotacao().getId());
+        this(voto.getId(), voto.getStatus());
     }
 }

@@ -13,11 +13,11 @@ INSERT INTO sessao_de_votacao (inicio, status, pauta_id)
 VALUES ('2023-02-27 08:30:00', 'INICIADA', 1),
        ('2023-02-27 09:00:00', 'ENCERRADA', 2);
 
-INSERT INTO voto (status, sessao_de_votacao_id)
-VALUES ('SIM', 1),
-       ('SIM', 1),
-       ('NAO', 2),
-       ('NAO', 2);
+INSERT INTO voto (status)
+VALUES ('SIM'),
+       ('SIM'),
+       ('NAO'),
+       ('NAO');
 
 INSERT INTO assembleia_pautas (assembleia_id, pauta_id)
 VALUES (1, 1);

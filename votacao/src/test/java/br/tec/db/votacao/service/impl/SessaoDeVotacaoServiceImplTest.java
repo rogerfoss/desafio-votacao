@@ -174,8 +174,8 @@ class SessaoDeVotacaoServiceImplTest {
     @Test
     void calcularResultadoDaSessaoDeVotacao() {
         List<Voto> votos = new ArrayList<>();
-        votos.add(new Voto(1L, VotoStatusEnum.SIM, sessaoDeVotacao, new Associado()));
-        votos.add(new Voto(2L, VotoStatusEnum.SIM, sessaoDeVotacao, new Associado()));
+        votos.add(new Voto(1L, VotoStatusEnum.SIM, new Associado()));
+        votos.add(new Voto(2L, VotoStatusEnum.SIM, new Associado()));
         sessaoDeVotacao.setVotos(votos);
 
         when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));

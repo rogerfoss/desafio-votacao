@@ -30,8 +30,6 @@ CREATE TABLE voto
 (
     id                   bigint not null auto_increment,
     status               text   NOT NULL,
-    sessao_de_votacao_id bigint NOT NULL,
-    FOREIGN KEY (sessao_de_votacao_id) REFERENCES sessao_de_votacao (id),
     PRIMARY KEY (id)
 );
 
