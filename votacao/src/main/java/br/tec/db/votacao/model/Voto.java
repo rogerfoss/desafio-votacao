@@ -2,16 +2,17 @@ package br.tec.db.votacao.model;
 
 import br.tec.db.votacao.enums.VotoStatusEnum;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
-@Setter
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "voto")
-@EqualsAndHashCode
 public class Voto {
 
     @Id

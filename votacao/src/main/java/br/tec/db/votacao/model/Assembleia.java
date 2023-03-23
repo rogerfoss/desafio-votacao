@@ -2,19 +2,20 @@ package br.tec.db.votacao.model;
 
 import br.tec.db.votacao.enums.AssembleiaStatusEnum;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Builder
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "assembleia")
-@EqualsAndHashCode
 public class Assembleia {
 
     @Id

@@ -3,16 +3,17 @@ package br.tec.db.votacao.model;
 import br.tec.db.votacao.enums.AssociadoStatusEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
-@Setter
 @Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "associado")
-@EqualsAndHashCode
 public class Associado {
 
     @Id

@@ -1,14 +1,12 @@
 package br.tec.db.votacao.exception.dto;
 
+import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
 @Data
-@Getter
-@SuperBuilder
+@Builder
 public class MethodArgumentNotValidExceptionDto {
     private String titulo;
     private int status;
