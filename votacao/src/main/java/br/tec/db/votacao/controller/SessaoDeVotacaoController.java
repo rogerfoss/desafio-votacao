@@ -32,7 +32,9 @@ public class SessaoDeVotacaoController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Se a sessão de votação for criada com sucesso"),
             @ApiResponse(responseCode = "400",
-                    description = "Se a pauta não estiver aguardando votação ou os dados informados forem inválidos"),
+                    description = "Se a pauta já estiver definida," +
+                            "se já houver uma sessão para a pauta," +
+                            " ou se os dados informados forem inválidos"),
             @ApiResponse(responseCode = "404", description = "Se a pauta não for encontrada")
     })
     @PostMapping
@@ -61,18 +63,6 @@ public class SessaoDeVotacaoController {
     @GetMapping("/{id}")
     public ResponseEntity<BuscarSessaoDeVotacaoDTO> buscarSessaoDeVotacaoPorId(@PathVariable Long id) {
         return new ResponseEntity<>(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorId(id), HttpStatus.OK);
-    }
-
-    @Operation(summary = "Busca uma sessão de votação pelo id da pauta")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Se as sessões de votação forem encontradas"),
-            @ApiResponse(responseCode = "400", description = "Se o id informado for inválido"),
-            @ApiResponse(responseCode = "404", description = "Se não for encontrada uma pauta com o id informado" +
-                    " ou se não houver nenhuma sessão de votação para a pauta informada")
-    })
-    @GetMapping("/pauta/{id}")
-    public ResponseEntity<BuscarSessaoDeVotacaoDTO> buscarSessaoDeVotacaoPorPauta(@PathVariable Long id) {
-        return new ResponseEntity<>(sessaoDeVotacaoService.buscarSessaoDeVotacaoPorPauta(id), HttpStatus.OK);
     }
 
     @Operation(summary = "Encerra uma sessão de votação")

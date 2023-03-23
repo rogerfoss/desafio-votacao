@@ -37,12 +37,6 @@ VALUES (1, 1);
 INSERT INTO assembleia_pautas (assembleia_id, pauta_id)
 VALUES (1, 2);
 
-INSERT INTO pauta_sessao_de_votacao (pauta_id, sessao_de_votacao_id)
-VALUES (1, 1);
-
-INSERT INTO pauta_sessao_de_votacao (pauta_id, sessao_de_votacao_id)
-VALUES (2, 2);
-
 INSERT INTO sessao_de_votacao_votos (sessao_de_votacao_id, voto_id)
 VALUES (1, 1);
 

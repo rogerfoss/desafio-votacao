@@ -52,14 +52,6 @@ CREATE TABLE assembleia_pautas
     FOREIGN KEY (pauta_id) REFERENCES pauta (id)
 );
 
-CREATE TABLE pauta_sessao_de_votacao
-(
-    pauta_id             bigint NOT NULL,
-    sessao_de_votacao_id bigint NOT NULL,
-    FOREIGN KEY (pauta_id) REFERENCES pauta (id),
-    FOREIGN KEY (sessao_de_votacao_id) REFERENCES sessao_de_votacao (id)
-);
-
 CREATE TABLE sessao_de_votacao_votos
 (
     sessao_de_votacao_id bigint NOT NULL,

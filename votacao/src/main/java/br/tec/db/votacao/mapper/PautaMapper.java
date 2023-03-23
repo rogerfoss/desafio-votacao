@@ -8,7 +8,7 @@ public interface PautaMapper {
     static Pauta buildPauta(CriarPautaDTO criarPautaDTO) {
         return Pauta.builder()
                 .titulo(criarPautaDTO.titulo())
-                .status(PautaStatusEnum.AGUARDANDO_VOTACAO)
+                .status(PautaStatusEnum.CRIADA)
                 .build();
     }
 }

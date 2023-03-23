@@ -89,6 +89,21 @@ public class SessaoDeVotacaoControllerTest {
             @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
             @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
     })
+    public void deveRetornarBadRequestAoCriarSessaoSePautaJaPossuirSessaoDeVotacao() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"inicio\": \"2023-03-20T10:00:00\",\"idPauta\": \"3\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.mensagem")
+                        .value("Não foi possível criar a sessão de votação, pauta já possui sessão de votação."));
+    }
+
+    @Test
+    @SqlGroup({
+            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertPauta),
+            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
+    })
     public void deveRetornarNotFoundAoCriarSessaoEmUmaPautaInexistente() throws Exception {
         mockMvc.perform(post(URL)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -147,40 +162,6 @@ public class SessaoDeVotacaoControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada."));
-    }
-
-    @Test
-    @SqlGroup({
-            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
-            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
-    })
-    public void deveBuscarSessaoDeVotacaoPorPauta() throws Exception {
-        mockMvc.perform(get(URL + "/pauta/1")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.status").value("INICIADA"));
-    }
-
-    @Test
-    public void deveRetornarBadRequestAoBuscarSessaoDeVotacaoPorPautaInvalido() throws Exception {
-        mockMvc.perform(get(URL + "/pauta/abc"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.detail").value("Failed to convert 'null' with value: 'abc'"));
-    }
-
-    @Test
-    @SqlGroup({
-            @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, scripts = insertSessaoDeVotacao),
-            @Sql(executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD, scripts = resetarDB)
-    })
-    public void deveRetornarNotFoundAoBuscarSessaoDeVotacaoPorPautaInexistente() throws Exception {
-        mockMvc.perform(get(URL + "/pauta/999"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.mensagem").value("Pauta não encontrada."));
     }
 
     @Test

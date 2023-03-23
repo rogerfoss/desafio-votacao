@@ -13,8 +13,6 @@ public interface SessaoDeVotacaoService {
 
     List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao();
 
-    BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id);
-
     void encerrarSessaoDeVotacao(Long id);
 
     void calcularResultadoDaSessaoDeVotacao(Long id);

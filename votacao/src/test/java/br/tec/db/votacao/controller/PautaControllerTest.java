@@ -38,7 +38,7 @@ public class PautaControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.titulo").value("pauta 1 teste"))
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.status").value("AGUARDANDO_VOTACAO"));
+                .andExpect(jsonPath("$.status").value("CRIADA"));
     }
 
     @Test
@@ -108,9 +108,10 @@ public class PautaControllerTest {
         mockMvc.perform(get(URL))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$", hasSize(3)))
                 .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[1].id").value(2));
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[2].id").value(3));
     }
 
     @Test
@@ -125,7 +126,7 @@ public class PautaControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.titulo").value("pauta 1"))
-                .andExpect(jsonPath("$.status").value("AGUARDANDO_VOTACAO"));
+                .andExpect(jsonPath("$.status").value("CRIADA"));
     }
 
     @Test

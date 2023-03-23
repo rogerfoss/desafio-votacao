@@ -15,7 +15,3 @@ VALUES ('2023-02-27 08:30:00', 'INICIADA', 1),
 
 INSERT INTO assembleia_pautas (assembleia_id, pauta_id)
 VALUES (1, 1);
-
-INSERT INTO pauta_sessao_de_votacao (pauta_id, sessao_de_votacao_id)
-VALUES (1, 1),
-       (2, 2);

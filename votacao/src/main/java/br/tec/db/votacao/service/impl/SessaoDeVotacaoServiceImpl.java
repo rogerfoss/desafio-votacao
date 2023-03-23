@@ -40,12 +40,16 @@ public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
         Pauta pauta = pautaRepository.findById(criarSessaoDeVotacaoDTO.idPauta())
                 .orElseThrow(() -> new NotFoundException("Pauta não encontrada."));
 
-        if (pauta.getStatus().equals(PautaStatusEnum.AGUARDANDO_VOTACAO)) {
-            SessaoDeVotacao sessaoDeVotacao = SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO);
-            pauta.setSessaoDeVotacao(sessaoDeVotacao);
-            return sessaoDeVotacaoRepository.save(sessaoDeVotacao);
-        } else {
+        if (pauta.getStatus().equals(PautaStatusEnum.APROVADA) ||
+                pauta.getStatus().equals(PautaStatusEnum.REPROVADA)) {
             throw new BadRequestException("Não foi possível criar a sessão de votação, pauta já definida.");
+        } else if (pauta.getStatus().equals(PautaStatusEnum.AGUARDANDO_VOTACAO)) {
+            throw new BadRequestException("Não foi possível criar a sessão de votação, " +
+                    "pauta já possui sessão de votação.");
+        } else {
+            SessaoDeVotacao sessaoDeVotacao = SessaoDeVotacaoMapper.buildSessaoDeVotacao(criarSessaoDeVotacaoDTO);
+            pauta.setStatus(PautaStatusEnum.AGUARDANDO_VOTACAO);
+            return sessaoDeVotacaoRepository.save(sessaoDeVotacao);
         }
     }
 
@@ -60,18 +64,6 @@ public class SessaoDeVotacaoServiceImpl implements SessaoDeVotacaoService {
     @Override
     public List<BuscarSessaoDeVotacaoDTO> buscarTodasAsSessoesDeVotacao() {
         return sessaoDeVotacaoRepository.findAll().stream().map(BuscarSessaoDeVotacaoDTO::new).toList();
-    }
-
-    @Override
-    public BuscarSessaoDeVotacaoDTO buscarSessaoDeVotacaoPorPauta(Long id) {
-        Pauta pauta = pautaRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Pauta não encontrada."));
-
-        if (pauta.getSessaoDeVotacao() == null) {
-            throw new NotFoundException("Não existe sessão de votação para a pauta informada.");
-        } else {
-            return new BuscarSessaoDeVotacaoDTO(pauta.getSessaoDeVotacao());
-        }
     }
 
     @Override

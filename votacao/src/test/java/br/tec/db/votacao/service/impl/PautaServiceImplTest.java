@@ -59,7 +59,7 @@ class PautaServiceImplTest {
 
         pauta = pautaService.criarPauta(criarPautaDTO);
 
-        assertThat(pauta.getStatus()).isEqualTo(PautaStatusEnum.AGUARDANDO_VOTACAO);
+        assertThat(pauta.getStatus()).isEqualTo(PautaStatusEnum.CRIADA);
         assertThat(pauta.getTitulo()).isEqualTo(criarPautaDTO.titulo());
 
         verify(assembleiaRepository).findById(1L);

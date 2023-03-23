@@ -3,8 +3,6 @@ FROM voto_associado;
 DELETE
 FROM sessao_de_votacao_votos;
 DELETE
-FROM pauta_sessao_de_votacao;
-DELETE
 FROM assembleia_pautas;
 DELETE
 FROM voto;
