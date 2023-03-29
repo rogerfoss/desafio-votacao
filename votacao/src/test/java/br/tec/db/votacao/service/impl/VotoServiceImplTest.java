@@ -11,8 +11,6 @@ import br.tec.db.votacao.mapper.VotoMapper;
 import br.tec.db.votacao.model.Associado;
 import br.tec.db.votacao.model.SessaoDeVotacao;
 import br.tec.db.votacao.model.Voto;
-import br.tec.db.votacao.repository.AssociadoRepository;
-import br.tec.db.votacao.repository.SessaoDeVotacaoRepository;
 import br.tec.db.votacao.repository.VotoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,14 +41,14 @@ class VotoServiceImplTest {
     private VotoRepository votoRepository;
 
     @Mock
-    private SessaoDeVotacaoRepository sessaoDeVotacaoRepository;
+    private SessaoDeVotacaoServiceImpl sessaoDeVotacaoService;
 
     @Mock
-    private AssociadoRepository associadoRepository;
+    private AssociadoServiceImpl associadoService;
 
     @BeforeEach
     public void inicializar() {
-        votoService = new VotoServiceImpl(votoRepository, sessaoDeVotacaoRepository, associadoRepository);
+        votoService = new VotoServiceImpl(votoRepository, sessaoDeVotacaoService, associadoService);
         votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 1L);
         sessaoDeVotacao = new SessaoDeVotacao(
                 1L, LocalDateTime.now(), null, SessaoDeVotacaoStatusEnum.INICIADA, null, new ArrayList<>());
@@ -62,59 +60,59 @@ class VotoServiceImplTest {
     @Test
     public void deveSalvarUmNovoVoto() {
         when(votoRepository.save(any(Voto.class))).thenReturn(VotoMapper.buildVoto(votarDTO));
-        when(sessaoDeVotacaoRepository.findById(anyLong())).thenReturn(Optional.of(sessaoDeVotacao));
-        when(associadoRepository.findById(anyLong())).thenReturn(Optional.of(associado));
+        when(sessaoDeVotacaoService.buscarPorId(anyLong())).thenReturn(sessaoDeVotacao);
+        when(associadoService.buscarPorId(anyLong())).thenReturn(associado);
 
         voto = votoService.votar(votarDTO);
 
         assertThat(voto.getStatus()).isEqualTo(votarDTO.status());
         assertThat(voto.getAssociado().getId()).isEqualTo(votarDTO.idAssociado());
-        verify(sessaoDeVotacaoRepository).findById(anyLong());
-        verify(associadoRepository).findById(anyLong());
+        verify(sessaoDeVotacaoService).buscarPorId(anyLong());
+        verify(associadoService).buscarPorId(anyLong());
         verify(votoRepository).save(any(Voto.class));
     }
 
     @Test
     public void deveRetornarNotFoundQuandoSessaoDeVotacaoNaoEncontradaAoVotar() {
-        when(sessaoDeVotacaoRepository.findById(anyLong())).thenReturn(Optional.empty());
+        votarDTO = new VotarDTO(VotoStatusEnum.SIM, 99L, 1L);
+        when(sessaoDeVotacaoService.buscarPorId(99L)).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> votoService.votar(votarDTO));
-        verify(sessaoDeVotacaoRepository).findById(anyLong());
+        verify(sessaoDeVotacaoService).buscarPorId(99L);
         verifyNoInteractions(votoRepository);
     }
 
     @Test
     public void deveRetornarNotFoundQuandoAssociadoNaoEncontradoAoVotar() {
-        when(associadoRepository.findById(anyLong())).thenReturn(Optional.empty());
-        when(sessaoDeVotacaoRepository.findById(anyLong())).thenReturn(Optional.of(sessaoDeVotacao));
+        votarDTO = new VotarDTO(VotoStatusEnum.SIM, 1L, 99L);
+        when(associadoService.buscarPorId(99L)).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> votoService.votar(votarDTO));
-        verify(associadoRepository).findById(anyLong());
-        verify(sessaoDeVotacaoRepository).findById(anyLong());
+        verify(associadoService).buscarPorId(99L);
         verifyNoInteractions(votoRepository);
     }
 
     @Test
     public void deveRetornarBadRequestSeSessaoDeVotacaoJaEncerradaAoVotar() {
         sessaoDeVotacao.setStatus(SessaoDeVotacaoStatusEnum.ENCERRADA);
-        when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));
-        when(associadoRepository.findById(1L)).thenReturn(Optional.of(associado));
+        when(sessaoDeVotacaoService.buscarPorId(1L)).thenReturn(sessaoDeVotacao);
+        when(associadoService.buscarPorId(1L)).thenReturn(associado);
 
         assertThrows(BadRequestException.class, () -> votoService.votar(votarDTO));
-        verify(sessaoDeVotacaoRepository).findById(1L);
-        verify(associadoRepository).findById(1L);
+        verify(sessaoDeVotacaoService).buscarPorId(1L);
+        verify(associadoService).buscarPorId(1L);
         verifyNoInteractions(votoRepository);
     }
 
     @Test
     public void deveRetornarBadRequestAoVotarSeAssociadoJaVotouNessaSessao() {
         sessaoDeVotacao.getVotos().add(voto);
-        when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));
-        when(associadoRepository.findById(1L)).thenReturn(Optional.of(associado));
+        when(sessaoDeVotacaoService.buscarPorId(1L)).thenReturn(sessaoDeVotacao);
+        when(associadoService.buscarPorId(1L)).thenReturn(associado);
 
         assertThrows(BadRequestException.class, () -> votoService.votar(votarDTO));
-        verify(sessaoDeVotacaoRepository).findById(1L);
-        verify(associadoRepository).findById(1L);
+        verify(sessaoDeVotacaoService).buscarPorId(1L);
+        verify(associadoService).buscarPorId(1L);
         verifyNoInteractions(votoRepository);
     }
 
@@ -151,20 +149,20 @@ class VotoServiceImplTest {
     @Test
     public void buscarVotosPorSessaoDeVotacao() {
         sessaoDeVotacao.getVotos().add(voto);
-        when(sessaoDeVotacaoRepository.findById(1L)).thenReturn(Optional.of(sessaoDeVotacao));
+        when(sessaoDeVotacaoService.buscarPorId(1L)).thenReturn(sessaoDeVotacao);
 
         List<BuscarVotoDTO> buscarVotoDTOS = votoService.buscarVotosPorSessaoDeVotacao(1L);
 
         assertThat(buscarVotoDTOS.size()).isEqualTo(1);
-        verify(sessaoDeVotacaoRepository).findById(1L);
+        verify(sessaoDeVotacaoService).buscarPorId(1L);
     }
 
     @Test
     void deveLancarNotFoundAoBuscarVotosPorSessaoDeVotacaoInexistente() {
-        when(sessaoDeVotacaoRepository.findById(99L)).thenReturn(Optional.empty());
+        when(sessaoDeVotacaoService.buscarPorId(99L)).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> votoService.buscarVotosPorSessaoDeVotacao(99L));
-        verify(sessaoDeVotacaoRepository).findById(99L);
+        verify(sessaoDeVotacaoService).buscarPorId(99L);
     }
 
 }

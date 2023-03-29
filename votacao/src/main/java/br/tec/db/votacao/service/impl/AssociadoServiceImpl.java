@@ -29,15 +29,17 @@ public class AssociadoServiceImpl implements AssociadoService {
 
     @Override
     public BuscarAssociadoDTO buscarAssociadoPorId(Long id) {
-        Associado associado = this.associadoRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Associado não encontrado"));
-
+        Associado associado = buscarPorId(id);
         return new BuscarAssociadoDTO(associado);
     }
 
     @Override
     public List<BuscarAssociadoDTO> buscarTodosOsAssociados() {
         return associadoRepository.findAll().stream().map(BuscarAssociadoDTO::new).toList();
+    }
+
+    protected Associado buscarPorId(Long id) {
+        return associadoRepository.findById(id).orElseThrow(() -> new NotFoundException("Associado não encontrado"));
     }
 
 }

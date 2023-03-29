@@ -9,7 +9,6 @@ import br.tec.db.votacao.exception.NotFoundException;
 import br.tec.db.votacao.mapper.PautaMapper;
 import br.tec.db.votacao.model.Assembleia;
 import br.tec.db.votacao.model.Pauta;
-import br.tec.db.votacao.repository.AssembleiaRepository;
 import br.tec.db.votacao.repository.PautaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,11 +38,11 @@ class PautaServiceImplTest {
     private PautaRepository pautaRepository;
 
     @Mock
-    private AssembleiaRepository assembleiaRepository;
+    private AssembleiaServiceImpl assembleiaService;
 
     @BeforeEach
     public void inicializar() {
-        pautaService = new PautaServiceImpl(pautaRepository, assembleiaRepository);
+        pautaService = new PautaServiceImpl(pautaRepository, assembleiaService);
         criarPautaDTO = new CriarPautaDTO("Pauta 1", 1L);
 
         assembleia = new Assembleia(1L, LocalDateTime.now(), null, AssembleiaStatusEnum.INICIADA, new ArrayList<>());
@@ -54,35 +53,34 @@ class PautaServiceImplTest {
     @Test
     public void deveCriarUmaPautaEmUmaAssembleia() {
         when(pautaRepository.save(any(Pauta.class))).thenReturn(PautaMapper.buildPauta(criarPautaDTO));
-
-        when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
+        when(assembleiaService.buscarPorId(1L)).thenReturn(assembleia);
 
         pauta = pautaService.criarPauta(criarPautaDTO);
 
         assertThat(pauta.getStatus()).isEqualTo(PautaStatusEnum.CRIADA);
         assertThat(pauta.getTitulo()).isEqualTo(criarPautaDTO.titulo());
 
-        verify(assembleiaRepository).findById(1L);
+        verify(assembleiaService).buscarPorId(1L);
         verify(pautaRepository).save(any(Pauta.class));
     }
 
     @Test
     public void deveRetornarNotFoundSeAssembleiaNaoEncontradaAoCriarPauta() {
         criarPautaDTO = new CriarPautaDTO("Pauta 1", 99L);
-        when(assembleiaRepository.findById(99L)).thenReturn(Optional.empty());
+        when(assembleiaService.buscarPorId(99L)).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> pautaService.criarPauta(criarPautaDTO));
-        verify(assembleiaRepository).findById(99L);
+        verify(assembleiaService).buscarPorId(99L);
         verifyNoInteractions(pautaRepository);
     }
 
     @Test
     public void deveRetornarBadRequestSeAssembleiaJaEncerradaAoCriarPauta() {
         assembleia.setStatus(AssembleiaStatusEnum.ENCERRADA);
-        when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
+        when(assembleiaService.buscarPorId(1L)).thenReturn(assembleia);
 
         assertThrows(BadRequestException.class, () -> pautaService.criarPauta(criarPautaDTO));
-        verify(assembleiaRepository).findById(1L);
+        verify(assembleiaService).buscarPorId(1L);
         verifyNoInteractions(pautaRepository);
     }
 
@@ -119,22 +117,22 @@ class PautaServiceImplTest {
 
     @Test
     void deveBuscarPautasPorAssembleia() {
-        when(assembleiaRepository.findById(1L)).thenReturn(Optional.of(assembleia));
+        when(assembleiaService.buscarPorId(1L)).thenReturn(assembleia);
 
         List<BuscarPautaDTO> buscarPautasDTO = pautaService.buscarPautasPorAssembleia(1L);
 
         assertThat(buscarPautasDTO).hasSize(1);
         assertThat(pauta.getId()).isEqualTo(buscarPautasDTO.get(0).id());
         assertThat(assembleia.getPautas().get(0).getId()).isEqualTo(buscarPautasDTO.get(0).id());
-        verify(assembleiaRepository).findById(1L);
+        verify(assembleiaService).buscarPorId(1L);
     }
 
     @Test
     void deveLancarNotFoundAoBuscarPautasPorAssembleiaInexistente() {
-        when(assembleiaRepository.findById(99L)).thenReturn(Optional.empty());
+        when(assembleiaService.buscarPorId(99L)).thenThrow(NotFoundException.class);
 
         assertThrows(NotFoundException.class, () -> pautaService.buscarPautasPorAssembleia(99L));
-        verify(assembleiaRepository).findById(99L);
+        verify(assembleiaService).buscarPorId(99L);
     }
 
 }

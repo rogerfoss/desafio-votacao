@@ -111,7 +111,7 @@ public class SessaoDeVotacaoControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.mensagem")
-                        .value("Pauta não encontrada."));
+                        .value("Pauta não encontrada"));
     }
 
 
@@ -161,7 +161,7 @@ public class SessaoDeVotacaoControllerTest {
         mockMvc.perform(get(URL + "/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada."));
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada"));
     }
 
     @Test
@@ -186,7 +186,7 @@ public class SessaoDeVotacaoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.mensagem").value("Sessão de votação já encerrada."));
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação já encerrada"));
     }
 
     @Test
@@ -208,7 +208,7 @@ public class SessaoDeVotacaoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada."));
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada"));
     }
 
     @Test
@@ -242,7 +242,7 @@ public class SessaoDeVotacaoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada."));
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação não encontrada"));
     }
 }
 

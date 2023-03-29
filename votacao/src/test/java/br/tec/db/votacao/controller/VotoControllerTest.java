@@ -111,7 +111,7 @@ class VotoControllerTest {
                         .content("{\"status\":\"NAO\",\"idSessaoDeVotacao\":\"2\",\"idAssociado\":\"1\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.mensagem").value("Sessão de votação encerrada"));
+                .andExpect(jsonPath("$.mensagem").value("Sessão de votação já encerrada"));
     }
 
     @Test
