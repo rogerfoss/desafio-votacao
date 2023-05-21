@@ -1,3 +1,5 @@
+A continuação do desenvolvimento deste desafio, assim como o frontend que consome essa API, estão sendo desenvolvidos no seguinte repositório: https://dev.azure.com/rogersiqueira/Desafio%20Vota%C3%A7%C3%A3o
+
 # Votação
 
 ## Objetivo
